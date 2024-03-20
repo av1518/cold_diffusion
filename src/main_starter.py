@@ -34,5 +34,48 @@ accelerator = Accelerator()
 
 # We wrap our model, optimizer, and dataloaders with `accelerator.prepare`,
 # which lets HuggingFace's Accelerate handle the device placement and gradient accumulation.
-ddpm, optim, dataloader = accelerator.prepare(ddpm, optim, train_dataloader)
+ddpm, optim, train_dataloader = accelerator.prepare(ddpm, optim, train_dataloader)
 print("Device:", accelerator.device)
+# %% make sure this works
+for x, _ in train_dataloader:
+    print(x.shape)
+    print(x.device)
+    break
+
+with torch.no_grad():
+    print(ddpm(x))
+    print("Passed initial test")
+# %% Training
+
+n_epoch = 100
+losses = []
+
+for i in range(n_epoch):
+    ddpm.train()
+
+    pbar = tqdm(train_dataloader)  # Wrap our loop with a visual progress bar
+    for x, _ in pbar:
+        optim.zero_grad()
+        loss = ddpm(x)
+        accelerator.backward(loss)
+        # ^Technically should be `accelerator.backward(loss)` but not necessary for local training
+        losses.append(loss.item())
+        avg_loss = np.average(
+            losses[max(len(losses) - 100, 0) :]
+        )  # calculates the current average loss
+        pbar.set_description(f"loss: {avg_loss:.3g}")
+        optim.step()
+
+    ddpm.eval()
+    with torch.no_grad():
+        xh = ddpm.sample(n_sample=16, size=(1, 28, 28), device=accelerator.device)
+        # Can get device explicitly with `accelerator.device`
+        # ^ make 16 samples, The size of each sample to generate (excluding the batch dimension).
+        # This should match the expected input size of the model.
+        grid = make_grid(xh, nrow=4)
+
+        # Save samples to `./contents` directory
+        save_image(grid, f"./contents/ddpm_sample_{i:04d}.png")
+
+        # save model
+        torch.save(ddpm.state_dict(), f"./ddpm_mnist.pth")

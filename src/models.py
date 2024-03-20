@@ -134,7 +134,7 @@ class DDPM(nn.Module):
         self.register_buffer("alpha_t", noise_schedule["alpha_t"])
         self.alpha_t
 
-        self.n_T = n_T
+        self.n_T = n_T  # Number of time steps
         self.criterion = criterion
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -174,11 +174,12 @@ class DDPM(nn.Module):
 
         t = torch.randint(
             1, self.n_T, (x.shape[0],), device=x.device
-        )  # Randomly sample a time step
+        )  # Randomly sample a time step, range is [1, n_T)
         epsilon = torch.randn_like(
             x
         )  # eps ~ N(0, 1) #noise tensor with same shape as x
         alpha_t = self.alpha_t[t, None, None, None]  # Get right shape for broadcasting
+        # ?[batch_size, channels, height, width]
 
         z_t = torch.sqrt(alpha_t) * x + torch.sqrt(1 - alpha_t) * epsilon
         # This is the z_t, which is sqrt(alphabar) x_0 + sqrt(1-alphabar) * eps
