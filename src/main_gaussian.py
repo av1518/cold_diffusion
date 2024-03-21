@@ -10,13 +10,15 @@ from torchvision.datasets import MNIST
 from torchvision.utils import save_image, make_grid
 import matplotlib.pyplot as plt
 
-
 import json
 from datetime import datetime
 from models import DDPM, CNN
 
+
 # %%
-# def main():
+
+# parameters
+n_hidden = (16, 32, 32, 16)
 
 tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])
 # normalise with mean 0.5 and std 1.0
@@ -33,7 +35,7 @@ test_dataloader = DataLoader(
     test_dataset, batch_size=128, shuffle=False, num_workers=0, drop_last=True
 )
 
-gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=(16, 32, 32, 16), act=nn.GELU)
+gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=n_hidden, act=nn.GELU)
 # For testing: (16, 32, 32, 16)
 # For more capacity (for example): (64, 128, 256, 128, 64)
 ddpm = DDPM(gt=gt, betas=(1e-4, 0.02), n_T=1000)
@@ -56,7 +58,7 @@ with torch.no_grad():
 
 # %% Training
 
-n_epoch = 10
+n_epoch = 100
 moving_avg_loss = []
 epoch_avg_losses = []  # List to store average loss per epoch
 test_avg_losses = []
@@ -105,7 +107,7 @@ for i in range(n_epoch):
         save_image(grid, f"./contents/ddpm_sample_{i:04d}.png")
 
         # save model
-        torch.save(ddpm.state_dict(), f"./ddpm_mnist_{i}.pth")
+        torch.save(ddpm.state_dict(), f"../saved_models/ddpm_gaussian_{i}.pth")
 # %%
 # After training, plot and save the loss curve
 plt.plot(range(1, n_epoch + 1), epoch_avg_losses, label="Average Loss per Epoch")

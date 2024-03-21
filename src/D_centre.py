@@ -37,13 +37,13 @@ def batch_center_crop_resize(
     return torch.cat(batch_cropped_resized, dim=0)
 
 
-def generate_centre_z_T(mean, std):
+def generate_centre_z_T(mean, std, batch_size):
     # Ensure mean and std are float values
     mean = mean.item() if isinstance(mean, torch.Tensor) else mean
     std = std.item() if isinstance(std, torch.Tensor) else std
 
     # Generate 4 values from the normal distribution for the 4 large blocks
-    block_values = torch.normal(mean, std, size=(2, 2))
+    block_values = torch.normal(mean, std, size=(batch_size, 1, 2, 2))
 
     # Expand each element to a 14x14 block
     expanded_tensor = torch.repeat_interleave(
