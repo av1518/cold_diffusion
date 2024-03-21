@@ -9,66 +9,6 @@ from torchvision.transforms import InterpolationMode
 from torch.utils.data import DataLoader
 
 
-# def progressive_zoom(img, steps, zoom_factor):
-#     """
-#     Progressively zooms in on an image.
-
-#     Parameters:
-#     img (PIL.Image or torch.Tensor): The input image.
-#     steps (int): Number of zoom steps.
-#     zoom_factor (float): Zoom factor per step. Less than 1 for zoom-in.
-
-#     Returns:
-#     torch.Tensor: A batch of progressively zoomed images.
-#     """
-#     if not isinstance(img, torch.Tensor):
-#         img = F.to_tensor(img)
-
-#     _, h, w = img.shape
-#     zoomed_images = []
-
-#     for step in range(steps):
-#         new_h, new_w = int(h * (zoom_factor**step)), int(w * (zoom_factor**step))
-#         # Calculate the cropping box
-#         top = (h - new_h) // 2
-#         left = (w - new_w) // 2
-#         img_zoomed = F.resized_crop(img, top, left, new_h, new_w, (h, w))
-#         zoomed_images.append(img_zoomed.unsqueeze(0))
-
-#     return torch.cat(zoomed_images, dim=0)
-
-
-# def progressive_random_zoom(img, steps, zoom_factor):
-#     """
-#     Progressively zooms in on random parts of an image.
-
-#     Parameters:
-#     img (PIL.Image or torch.Tensor): The input image.
-#     steps (int): Number of zoom steps.
-#     zoom_factor (float): Zoom factor per step. Less than 1 for zoom-in.
-
-#     Returns:
-#     torch.Tensor: A batch of progressively zoomed images.
-#     """
-#     if not isinstance(img, torch.Tensor):
-#         img = F.to_tensor(img)
-
-#     _, h, w = img.shape
-#     zoomed_images = []
-
-#     for step in range(steps):
-#         new_h, new_w = int(h * (zoom_factor**step)), int(w * (zoom_factor**step))
-
-#         # Calculate random top and left coordinates for cropping
-#         top = random.randint(0, h - new_h)
-#         left = random.randint(0, w - new_w)
-
-#         img_zoomed = F.resized_crop(img, top, left, new_h, new_w, (h, w))
-#         zoomed_images.append(img_zoomed.unsqueeze(0))
-
-#     return torch.cat(zoomed_images, dim=0)
-
-
 def single_zoom(img, zoom_factor, interpolation=InterpolationMode.BILINEAR):
     _, h, w = img.shape
 
@@ -156,6 +96,24 @@ def process_dataset_at_z_T(dataset, max_steps):
         processed_images.append(processed_img)
 
     return torch.stack(processed_images)
+
+
+# -------------Centre zoom -----------------#
+
+
+def single_center_crop_resize(img, time_step, interpolation=InterpolationMode.NEAREST):
+    _, h, w = img.shape
+    target_size = 28 - time_step
+
+    # Calculate center cropping coordinates
+    top = (h - target_size) // 2
+    left = (w - target_size) // 2
+
+    # Crop and resize
+    img_cropped_resized = F.resized_crop(
+        img, top, left, target_size, target_size, (h, w), interpolation=interpolation
+    )
+    return img_cropped_resized
 
 
 batch_size = 64  # You can adjust the batch size according to your system's capability
@@ -248,24 +206,70 @@ plt.imshow(rescaled_noisy_image.squeeze(), cmap="gray")
 plt.show()
 
 
-# %%
+# %% Testing single zoom
 
 # Load an example image from MNIST
 dataset = MNIST("./data", train=True, download=True, transform=transforms.ToTensor())
-img, _ = dataset[5]  # Example image
+for i in range(0, 10):
+    img, _ = dataset[i]  # Example image
 
-# visualise single_random_crop_resize:
+    # visualise single_random_crop_resize:
 
-zoomed_in = single_random_crop_resize(img, time_step=27)
+    zoomed_in = single_center_crop_resize(img, time_step=24)
 
-# Visualize the results
-fig, axes = plt.subplots(1, 2, figsize=(8, 4))
-axes[0].imshow(img.squeeze(), cmap="gray")
-axes[0].set_title("Original")
-axes[0].axis("off")
-axes[1].imshow(zoomed_in.squeeze(), cmap="gray")
-axes[1].set_title("Zoomed In")
-axes[1].axis("off")
+    # Visualize the results
+    fig, axes = plt.subplots(1, 2, figsize=(8, 4))
+    axes[0].imshow(img.squeeze(), cmap="gray")
+    axes[0].set_title("Original")
+    axes[0].axis("off")
+    axes[1].imshow(zoomed_in.squeeze(), cmap="gray")
+    axes[1].set_title("Zoomed In")
+    axes[1].axis("off")
+    plt.show()
+
+
+# %%
+
+fig, axes = plt.subplots(4, 4, figsize=(16, 16))
+
+for i in range(4):
+    for j in range(0, 4, 2):
+        idx = 2 * i + j // 2
+        img, _ = dataset[idx]  # Example image
+
+        # Apply zoom
+        zoomed_in = single_center_crop_resize(img, time_step=24)
+
+        # Original image
+        axes[i, j].imshow(img.squeeze(), cmap="gray")
+        axes[i, j].set_title(f"Original {idx}")
+        axes[i, j].axis("off")
+
+        # Zoomed image
+        axes[i, j + 1].imshow(zoomed_in.squeeze(), cmap="gray")
+        axes[i, j + 1].set_title(f"Zoomed In {idx}")
+        axes[i, j + 1].axis("off")
+
+plt.show()
+
+# %% Testing progressive random zoom
+
+img, _ = dataset[0]
+
+# Create a subplot of 1 row and 10 columns
+fig, axes = plt.subplots(1, 10, figsize=(20, 2))
+
+# Apply different zoom levels and plot
+for i in range(10):
+    time_step = i * 3  # Increasing zoom level
+    zoomed_in = single_center_crop_resize(img, time_step=time_step)
+
+    axes[i].imshow(zoomed_in.squeeze(), cmap="gray")
+    axes[i].set_title(f"Zoom Level {time_step}")
+    axes[i].axis("off")
+    print(zoomed_in.shape)
+    print(zoomed_in)
+
 plt.show()
 
 
@@ -330,3 +334,29 @@ plt.show()
 
 # # Apply the progressive random zoom
 # zoomed_images = progressive_random_zoom(img, steps=100, zoom_factor=0.99)
+
+# %%
+
+# Load an example image from MNIST
+dataset = MNIST("./data", train=True, download=True, transform=transforms.ToTensor())
+img, _ = dataset[5]  # Example image
+
+# %% Visualise progressive zoom at centre
+zoomed_image = single_center_crop_resize(img, time_step=27)
+
+
+# Visualize the zoomed in image
+plt.imshow(zoomed_image.squeeze(), cmap="gray")
+plt.axis("off")
+plt.show()
+
+
+# %% Visualise progressive random zoom
+zoomed_images = progressive_random_zoom(img, steps=10, zoom_factor=0.8)
+
+# Visualize the results
+fig, axes = plt.subplots(1, 10, figsize=(15, 3))
+for i, ax in enumerate(axes):
+    ax.imshow(zoomed_images[i].squeeze(), cmap="gray")
+    ax.axis("off")
+plt.show()

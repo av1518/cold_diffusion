@@ -33,7 +33,12 @@ test_dataloader = DataLoader(
     test_dataset, batch_size=128, shuffle=False, num_workers=0, drop_last=True
 )
 
-gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=(16, 32, 32, 16), act=nn.GELU)
+gt = CNN(
+    in_channels=1,
+    expected_shape=(28, 28),
+    n_hidden=(64, 128, 256, 128, 64),
+    act=nn.GELU,
+)
 # For testing: (16, 32, 32, 16)
 # For more capacity (for example): (64, 128, 256, 128, 64)
 ddpm = DDPM_custom(gt=gt, n_T=28, criterion=nn.MSELoss())

@@ -13,13 +13,13 @@ import matplotlib.pyplot as plt
 
 import json
 from datetime import datetime
-from models import DDPM, CNN
+from models import CNN
+from model_D_centre import DDPM_custom
 
 # %%
 # def main():
 
 tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])
-# normalise with mean 0.5 and std 1.0
 
 # Load the training dataset
 train_dataset = MNIST("./data", train=True, download=True, transform=tf)
@@ -36,7 +36,7 @@ test_dataloader = DataLoader(
 gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=(16, 32, 32, 16), act=nn.GELU)
 # For testing: (16, 32, 32, 16)
 # For more capacity (for example): (64, 128, 256, 128, 64)
-ddpm = DDPM(gt=gt, betas=(1e-4, 0.02), n_T=1000)
+ddpm = DDPM_custom(gt=gt, n_T=26, criterion=nn.MSELoss())
 optim = torch.optim.Adam(ddpm.parameters(), lr=2e-4)
 
 accelerator = Accelerator()
@@ -52,11 +52,12 @@ for x, _ in train_dataloader:
 
 with torch.no_grad():
     ddpm(x)
+    print(ddpm(x))
     print("Passed initial test")
 
 # %% Training
 
-n_epoch = 10
+n_epoch = 2
 moving_avg_loss = []
 epoch_avg_losses = []  # List to store average loss per epoch
 test_avg_losses = []
@@ -95,27 +96,29 @@ for i in range(n_epoch):
         test_avg_loss = np.mean(test_losses)
         test_avg_losses.append(test_avg_loss)
 
-        xh = ddpm.sample(n_sample=16, size=(1, 28, 28), device=accelerator.device)
+        xh = ddpm.sample(n_samples=16, device=accelerator.device)
         # Can get device explicitly with `accelerator.device`
         # ^ make 16 samples, The size of each sample to generate (excluding the batch dimension).
         # This should match the expected input size of the model.
         grid = make_grid(xh, nrow=4)
 
         # Save samples to `./contents` directory
-        save_image(grid, f"./contents/ddpm_sample_{i:04d}.png")
+        save_image(grid, f"./contents_custom/ddpm_sample_{i:04d}.png")
 
         # save model
-        torch.save(ddpm.state_dict(), f"./ddpm_mnist_{i}.pth")
+        torch.save(ddpm.state_dict(), f"./ddpm_mnist.pth")
 # %%
 # After training, plot and save the loss curve
 plt.plot(range(1, n_epoch + 1), epoch_avg_losses, label="Average Loss per Epoch")
-plt.plot(range(1, n_epoch + 1), test_avg_losses, label="Test Loss per Epoch")
+# plt.plot(range(1, n_epoch + 1), test_avg_losses, label="Test Loss per Epoch")
 plt.xlabel("Epoch")
 plt.ylabel("Average Loss")
 plt.title("DDPM Training Loss Curve")
 plt.legend()
-plt.savefig("./contents/ddpm_loss_curve.png")
+# plt.savefig("./contents/ddpm_loss_curve.png")
 plt.show()
+
+# %%
 
 
 def save_metrics_to_json(filename, data):
