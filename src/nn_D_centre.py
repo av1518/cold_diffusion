@@ -35,20 +35,19 @@ class DDPM_custom(nn.Module):
     def sample(self, n_samples: int, device) -> torch.Tensor:
         mean = torch.tensor([-0.0697])
         std = torch.tensor([0.4373])
-        z_t = generate_centre_z_T(mean=mean, std=std)
-        z_t = (
-            z_t.repeat(n_samples, 1, 1).unsqueeze(1).to(device)
-        )  # Shape: [n_samples, 1, 28, 28]
+        z_t = generate_centre_z_T(mean=mean, std=std, batch_size=n_samples)
+        z_t = z_t.to(device)
 
         for s in range(self.n_T, 0, -1):
             scaled_time = (s / self.n_T) * torch.ones(n_samples, device=device)
-            x_hat = self.gt(z_t, scaled_time.unsqueeze(1))
-            z_t -= batch_center_crop_resize(
-                x_hat, torch.tensor([s] * n_samples).to(device)
+            x_hat = self.gt(z_t, scaled_time)
+            D_0_s = batch_center_crop_resize(
+                x_hat, torch.full((n_samples,), s, device=device)
             )
             if s > 1:
-                z_t += batch_center_crop_resize(
-                    x_hat, torch.tensor([s - 1] * n_samples).to(device)
+                D_0_s_1 = batch_center_crop_resize(
+                    x_hat, torch.full((n_samples,), s - 1, device=device)
                 )
+                z_t -= D_0_s - D_0_s_1
 
         return z_t

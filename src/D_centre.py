@@ -7,6 +7,8 @@ from torchvision.datasets import MNIST
 from torchvision import transforms
 from torchvision.transforms import InterpolationMode
 from torch.utils.data import DataLoader
+from tqdm import tqdm
+from torch.distributions.categorical import Categorical
 
 
 # -------------Centre zoom -----------------#
@@ -43,11 +45,12 @@ def generate_centre_z_T(mean, std, batch_size):
     std = std.item() if isinstance(std, torch.Tensor) else std
 
     # Generate 4 values from the normal distribution for the 4 large blocks
-    block_values = torch.normal(mean, std, size=(batch_size, 1, 2, 2))
+    # Each block is 7x7 pixels
+    block_values = torch.normal(mean, std, size=(batch_size, 1, 4, 4))
 
-    # Expand each element to a 14x14 block
+    # Expand each block to 7x7 to fill the 28x28 image
     expanded_tensor = torch.repeat_interleave(
-        torch.repeat_interleave(block_values, 14, dim=0), 14, dim=1
+        torch.repeat_interleave(block_values, 7, dim=2), 7, dim=3
     )
     return expanded_tensor
 
@@ -65,6 +68,171 @@ def extract_center(img, target_size=2):
 
     return center
 
+
+def single_alternating_zoom(
+    img, step, total_steps=28, interpolation=InterpolationMode.NEAREST
+):
+    _, h, w = img.shape
+
+    # Determine the amount of reduction for top-left and bottom-right
+    top_left_reduction = (step + 1) // 2
+    bottom_right_reduction = step // 2
+
+    # Calculate the target size
+    target_size = total_steps - top_left_reduction - bottom_right_reduction
+
+    # Make sure we don't go below 1 pixel
+    target_size = max(target_size, 1)
+
+    # Calculate the top-left corner for cropping
+    top = top_left_reduction
+    left = top_left_reduction
+
+    # Calculate the bottom-right corner for cropping
+    bottom = h - bottom_right_reduction
+    right = w - bottom_right_reduction
+
+    img_cropped_resized = F.resized_crop(
+        img, top, left, bottom - top, right - left, (h, w), interpolation=interpolation
+    )
+    return img_cropped_resized
+
+
+def single_alternating_zoom_batch(
+    images, steps, total_steps=28, interpolation=InterpolationMode.NEAREST
+):
+    batch_cropped_resized = []
+    for img, step in zip(images, steps):
+        cropped_resized_img = single_alternating_zoom(
+            img, step.item(), total_steps, interpolation
+        )
+        batch_cropped_resized.append(cropped_resized_img.unsqueeze(0))
+    return torch.cat(batch_cropped_resized, dim=0)
+
+
+def extract_central_pixels_from_loader(dataloader, steps=27):
+    central_pixels = []
+
+    for batch, _ in tqdm(dataloader):
+        for img in batch:
+            # Apply zoom to step 27
+            zoomed_img = single_alternating_zoom(img, steps)
+            # Take any pixel's value as the image is of uniform color
+            central_pixel = zoomed_img.view(-1)[
+                0
+            ].item()  # Extract the first pixel value
+            central_pixels.append(central_pixel)
+
+    return central_pixels
+
+
+def sample_from_central_pixel_distribution(num_samples):
+    # Load the histogram data
+    central_pixels = np.load("central_pixels.npy")
+
+    # Calculate probabilities
+    bins = np.linspace(-0.5, 0.5, num=257)  # 256 bins from -0.5 to 0.5
+    counts, _ = np.histogram(central_pixels, bins=bins)
+    probs = counts / counts.sum()
+
+    # Convert to PyTorch tensor
+    probs_tensor = torch.tensor(probs, dtype=torch.float)
+
+    # Create a Categorical distribution
+    distribution = Categorical(probs=probs_tensor)
+
+    # Sample from the distribution
+    samples = distribution.sample([num_samples])
+
+    # Convert sample indices to actual pixel values
+    sampled_pixel_values = bins[samples]
+
+    return sampled_pixel_values
+
+
+# %%
+# Example usage:
+num_samples = 2000  # Number of samples to draw
+sampled_pixels = sample_from_central_pixel_distribution(num_samples)
+
+# Plot the distribution of sampled pixel values
+plt.hist(sampled_pixels, bins=256)
+plt.xlabel("Pixel Intensity")
+plt.ylabel("Frequency")
+plt.title("Distribution of Sampled Central Pixel in MNIST Training Set (Normalized)")
+plt.show()
+
+
+# %%
+
+# Define the transform and load the dataset
+tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])
+train_dataset = MNIST("./data", train=True, download=True, transform=tf)
+train_dataloader = DataLoader(
+    train_dataset, batch_size=128, shuffle=True, num_workers=0, drop_last=True
+)
+
+# Extract central pixels from the dataloader
+central_pixels = extract_central_pixels_from_loader(train_dataloader)
+# %%
+import numpy as np
+
+# Plot the distribution of central pixels
+plt.hist(central_pixels, bins=257)
+plt.xlabel("Pixel Intensity")
+plt.ylabel("Frequency")
+plt.title("Distribution of Central Pixel in MNIST Training Set (Normalized)")
+plt.show()
+
+counts, bins = np.histogram(central_pixels, bins=256)
+probs = counts / len(central_pixels)
+
+
+np.save("central_pixels.npy", central_pixels)
+# %%
+# Calculate probabilities
+bins = np.linspace(-0.5, 0.5, num=257)  # 256 bins from -0.5 to 0.5
+counts, _ = np.histogram(central_pixels, bins=bins)
+probs = counts / counts.sum()
+
+# Convert to PyTorch tensor
+probs_tensor = torch.tensor(probs, dtype=torch.float)
+
+# Create a Categorical distribution
+distribution = Categorical(probs=probs_tensor)
+
+# Sample from the distribution
+num_samples = 30000  # Number of samples to draw
+samples = distribution.sample([num_samples])
+
+# Convert sample indices to actual pixel values
+sampled_pixel_values = bins[samples]
+
+# Plot the distribution of sampled pixel values
+plt.hist(sampled_pixel_values, bins=256)
+plt.xlabel("Pixel Intensity")
+plt.ylabel("Frequency")
+plt.title("Distribution of Sampled Central Pixel in MNIST Training Set (Normalized)")
+plt.show()
+
+# %%
+
+
+# Plotting
+fig, axes = plt.subplots(1, 6, figsize=(15, 5))  # Change 6 to see more steps
+axes[0].imshow(img.squeeze(), cmap="gray")
+axes[0].set_title("Original")
+axes[0].axis("off")
+
+# Apply function and plot for various steps
+steps_to_test = [23, 24, 25, 26, 27]  # Modify as needed to test different steps
+for i, step in enumerate(steps_to_test):
+    cropped_img = single_alternating_crop_resize(img, step)
+    axes[i + 1].imshow(cropped_img.squeeze(), cmap="gray")
+    axes[i + 1].set_title(f"Step {step}")
+    axes[i + 1].axis("off")
+
+plt.show()
 
 # %% Testing single zoom
 
@@ -149,11 +317,19 @@ def extract_center(img, target_size=2):
 
 # # %%
 
-
+# %%
 # # Example usage
-# mean_value = -0.0697
-# std_value = 0.4373
-# generated_28x28_tensor = generate_centre_z_T(mean_value, std_value)
+mean = torch.tensor([-0.0697])
+std = torch.tensor([0.4373])
+batch_size = 10  # Number of samples to generate
 
-# # Visualize the generated tensor
-# plt.imshow(generated_28x28_tensor, cmap="gray")
+# Generate images
+images = generate_centre_z_T(mean, std, batch_size)
+print(images.shape)
+
+# Visualize the images
+fig, axs = plt.subplots(1, batch_size, figsize=(20, 2))
+for i, img in enumerate(images):
+    axs[i].imshow(img.squeeze(), cmap="gray")
+    axs[i].axis("off")
+plt.show()

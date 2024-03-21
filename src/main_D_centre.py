@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import json
 from datetime import datetime
 from models import CNN
-from model_D_centre import DDPM_custom
+from nn_D_centre import DDPM_custom
 
 # %%
 # def main():
@@ -57,7 +57,7 @@ with torch.no_grad():
 
 # %% Training
 
-n_epoch = 2
+n_epoch = 50
 moving_avg_loss = []
 epoch_avg_losses = []  # List to store average loss per epoch
 test_avg_losses = []
@@ -106,7 +106,7 @@ for i in range(n_epoch):
         save_image(grid, f"./contents_custom/ddpm_sample_{i:04d}.png")
 
         # save model
-        torch.save(ddpm.state_dict(), f"./ddpm_mnist.pth")
+        # torch.save(ddpm.state_dict(), f"./ddpm_mnist.pth")
 # %%
 # After training, plot and save the loss curve
 plt.plot(range(1, n_epoch + 1), epoch_avg_losses, label="Average Loss per Epoch")
