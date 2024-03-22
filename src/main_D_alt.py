@@ -23,6 +23,7 @@ from nn_D_centre_alt import DDPM_custom
 
 learning_rate = 2e-4
 batch_size = 128
+n_T = 27
 
 
 tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])
@@ -42,7 +43,7 @@ test_dataloader = DataLoader(
 gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=(16, 32, 32, 16), act=nn.GELU)
 # For testing: (16, 32, 32, 16)
 # For more capacity (for example): (64, 128, 256, 128, 64)
-ddpm = DDPM_custom(gt=gt, n_T=26, criterion=nn.MSELoss())
+ddpm = DDPM_custom(gt=gt, n_T=n_T, criterion=nn.MSELoss())
 optim = torch.optim.Adam(ddpm.parameters(), lr=learning_rate)
 
 accelerator = Accelerator()
@@ -92,7 +93,7 @@ for i in range(n_epoch):
         avg_loss = np.average(
             moving_avg_loss[max(len(moving_avg_loss) - 100, 0) :]
         )  # calculates the current average loss
-        pbar.set_description(f"100 Moving average Loss: {avg_loss:.3g}")
+        pbar.set_description(f"100 Moving average Loss: {avg_loss:.3g}, Epoch: {i}")
         optim.step()
 
         loss_item = loss.item()

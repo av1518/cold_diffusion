@@ -178,193 +178,193 @@ def sample_from_central_pixel_distribution(batch_size):
     return sampled_images
 
 
-"""
+# """
 
-num_samples = 2000  # Number of samples to draw
-sampled_pixels = sample_from_central_pixel_distribution(num_samples)
+# num_samples = 2000  # Number of samples to draw
+# sampled_pixels = sample_from_central_pixel_distribution(num_samples)
 
-# Plot the distribution of sampled pixel values
-plt.hist(sampled_pixels, bins=256)
-plt.xlabel("Pixel Intensity")
-plt.ylabel("Frequency")
-plt.title("Distribution of Sampled Central Pixel in MNIST Training Set (Normalized)")
-plt.show()
+# # Plot the distribution of sampled pixel values
+# plt.hist(sampled_pixels, bins=256)
+# plt.xlabel("Pixel Intensity")
+# plt.ylabel("Frequency")
+# plt.title("Distribution of Sampled Central Pixel in MNIST Training Set (Normalized)")
+# plt.show()
 
-"""
-# %%
-
-# Define the transform and load the dataset
-tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])
-train_dataset = MNIST("./data", train=True, download=True, transform=tf)
-train_dataloader = DataLoader(
-    train_dataset, batch_size=128, shuffle=True, num_workers=0, drop_last=True
-)
-
-# Extract central pixels from the dataloader
-central_pixels = extract_central_pixels_from_loader(train_dataloader)
-# %%
-import numpy as np
-
-# Plot the distribution of central pixels
-plt.hist(central_pixels, bins=257)
-plt.xlabel("Pixel Intensity")
-plt.ylabel("Frequency")
-plt.title("Distribution of Central Pixel in MNIST Training Set (Normalized)")
-plt.show()
-
-counts, bins = np.histogram(central_pixels, bins=256)
-probs = counts / len(central_pixels)
-
-
-np.save("central_pixels.npy", central_pixels)
-# %%
-# Calculate probabilities
-bins = np.linspace(-0.5, 0.5, num=257)  # 256 bins from -0.5 to 0.5
-counts, _ = np.histogram(central_pixels, bins=bins)
-probs = counts / counts.sum()
-
-# Convert to PyTorch tensor
-probs_tensor = torch.tensor(probs, dtype=torch.float)
-
-# Create a Categorical distribution
-distribution = Categorical(probs=probs_tensor)
-
-# Sample from the distribution
-num_samples = 30000  # Number of samples to draw
-samples = distribution.sample([num_samples])
-
-# Convert sample indices to actual pixel values
-sampled_pixel_values = bins[samples]
-
-# Plot the distribution of sampled pixel values
-plt.hist(sampled_pixel_values, bins=256)
-plt.xlabel("Pixel Intensity")
-plt.ylabel("Frequency")
-plt.title("Distribution of Sampled Central Pixel in MNIST Training Set (Normalized)")
-plt.show()
-
-# %%
-dataset = MNIST("./data", train=True, download=True, transform=transforms.ToTensor())
-img, _ = dataset[2]  # Example image
-
-
-# Plotting
-fig, axes = plt.subplots(1, 6, figsize=(15, 5))  # Change 6 to see more steps
-axes[0].imshow(img.squeeze(), cmap="gray")
-axes[0].set_title("Original")
-axes[0].axis("off")
-
-# Apply function and plot for various steps
-steps_to_test = [0, 10, 25, 26, 27]  # Modify as needed to test different steps
-for i, step in enumerate(steps_to_test):
-    cropped_img = single_alternating_zoom(
-        img, step, interpolation=InterpolationMode.NEAREST
-    )
-    axes[i + 1].imshow(cropped_img.squeeze(), cmap="gray")
-    axes[i + 1].set_title(f"Step {step}")
-    axes[i + 1].axis("off")
-
-plt.show()
-
-# %%
-"""
-# %% Testing single zoom
-
-# Load an example image from MNIST
-# dataset = MNIST("./data", train=True, download=True, transform=transforms.ToTensor())
-# for i in range(0, 10):
-#     img, _ = dataset[i]  # Example image
-
-#     # visualise single_random_crop_resize:
-
-#     zoomed_in = single_center_crop_resize(img, time_step=26)
-
-#     # Visualize the results
-#     fig, axes = plt.subplots(1, 2, figsize=(8, 4))
-#     axes[0].imshow(img.squeeze(), cmap="gray")
-#     axes[0].set_title("Original")
-#     axes[0].axis("off")
-#     axes[1].imshow(zoomed_in.squeeze(), cmap="gray")
-#     axes[1].set_title("Zoomed In")
-#     axes[1].axis("off")
-#     plt.show()
-
-
+# """
 # # %%
 
-# fig, axes = plt.subplots(4, 4, figsize=(16, 16))
+# # Define the transform and load the dataset
+# tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])
+# train_dataset = MNIST("./data", train=True, download=True, transform=tf)
+# train_dataloader = DataLoader(
+#     train_dataset, batch_size=128, shuffle=True, num_workers=0, drop_last=True
+# )
 
-# for i in range(4):
-#     for j in range(0, 4, 2):
-#         idx = 2 * i + j // 2
-#         img, _ = dataset[idx]  # Example image
+# # Extract central pixels from the dataloader
+# central_pixels = extract_central_pixels_from_loader(train_dataloader)
+# # %%
+# import numpy as np
 
-#         # Apply zoom
-#         zoomed_in = single_center_crop_resize(img, time_step=26)
+# # Plot the distribution of central pixels
+# plt.hist(central_pixels, bins=257)
+# plt.xlabel("Pixel Intensity")
+# plt.ylabel("Frequency")
+# plt.title("Distribution of Central Pixel in MNIST Training Set (Normalized)")
+# plt.show()
 
-#         # Original image
-#         axes[i, j].imshow(img.squeeze(), cmap="gray")
-#         axes[i, j].set_title(f"Original {idx}")
-#         axes[i, j].axis("off")
+# counts, bins = np.histogram(central_pixels, bins=256)
+# probs = counts / len(central_pixels)
 
-#         # Zoomed image
-#         axes[i, j + 1].imshow(zoomed_in.squeeze(), cmap="gray")
-#         axes[i, j + 1].set_title(f"Zoomed In {idx}")
-#         axes[i, j + 1].axis("off")
+
+# np.save("central_pixels.npy", central_pixels)
+# # %%
+# # Calculate probabilities
+# bins = np.linspace(-0.5, 0.5, num=257)  # 256 bins from -0.5 to 0.5
+# counts, _ = np.histogram(central_pixels, bins=bins)
+# probs = counts / counts.sum()
+
+# # Convert to PyTorch tensor
+# probs_tensor = torch.tensor(probs, dtype=torch.float)
+
+# # Create a Categorical distribution
+# distribution = Categorical(probs=probs_tensor)
+
+# # Sample from the distribution
+# num_samples = 30000  # Number of samples to draw
+# samples = distribution.sample([num_samples])
+
+# # Convert sample indices to actual pixel values
+# sampled_pixel_values = bins[samples]
+
+# # Plot the distribution of sampled pixel values
+# plt.hist(sampled_pixel_values, bins=256)
+# plt.xlabel("Pixel Intensity")
+# plt.ylabel("Frequency")
+# plt.title("Distribution of Sampled Central Pixel in MNIST Training Set (Normalized)")
+# plt.show()
+
+# # %%
+# dataset = MNIST("./data", train=True, download=True, transform=transforms.ToTensor())
+# img, _ = dataset[2]  # Example image
+
+
+# # Plotting
+# fig, axes = plt.subplots(1, 6, figsize=(15, 5))  # Change 6 to see more steps
+# axes[0].imshow(img.squeeze(), cmap="gray")
+# axes[0].set_title("Original")
+# axes[0].axis("off")
+
+# # Apply function and plot for various steps
+# steps_to_test = [0, 10, 25, 26, 27]  # Modify as needed to test different steps
+# for i, step in enumerate(steps_to_test):
+#     cropped_img = single_alternating_zoom(
+#         img, step, interpolation=InterpolationMode.NEAREST
+#     )
+#     axes[i + 1].imshow(cropped_img.squeeze(), cmap="gray")
+#     axes[i + 1].set_title(f"Step {step}")
+#     axes[i + 1].axis("off")
 
 # plt.show()
 
+# # %%
+# """
+# # %% Testing single zoom
+
+# # Load an example image from MNIST
+# # dataset = MNIST("./data", train=True, download=True, transform=transforms.ToTensor())
+# # for i in range(0, 10):
+# #     img, _ = dataset[i]  # Example image
+
+# #     # visualise single_random_crop_resize:
+
+# #     zoomed_in = single_center_crop_resize(img, time_step=26)
+
+# #     # Visualize the results
+# #     fig, axes = plt.subplots(1, 2, figsize=(8, 4))
+# #     axes[0].imshow(img.squeeze(), cmap="gray")
+# #     axes[0].set_title("Original")
+# #     axes[0].axis("off")
+# #     axes[1].imshow(zoomed_in.squeeze(), cmap="gray")
+# #     axes[1].set_title("Zoomed In")
+# #     axes[1].axis("off")
+# #     plt.show()
+
+
+# # # %%
+
+# # fig, axes = plt.subplots(4, 4, figsize=(16, 16))
+
+# # for i in range(4):
+# #     for j in range(0, 4, 2):
+# #         idx = 2 * i + j // 2
+# #         img, _ = dataset[idx]  # Example image
+
+# #         # Apply zoom
+# #         zoomed_in = single_center_crop_resize(img, time_step=26)
+
+# #         # Original image
+# #         axes[i, j].imshow(img.squeeze(), cmap="gray")
+# #         axes[i, j].set_title(f"Original {idx}")
+# #         axes[i, j].axis("off")
+
+# #         # Zoomed image
+# #         axes[i, j + 1].imshow(zoomed_in.squeeze(), cmap="gray")
+# #         axes[i, j + 1].set_title(f"Zoomed In {idx}")
+# #         axes[i, j + 1].axis("off")
+
+# # plt.show()
+
+
+# # # %%
+
+
+# # # Example usage
+# # # Assuming 'img' is a 28x28 image from MNIST dataset
+# # img, _ = dataset[0]  # Replace with actual image from your dataset
+# # center_region = extract_center(img)
+# # plt.imshow(center_region.squeeze(), cmap="gray")
+
+# # # %%
+# # # Load MNIST dataset
+# # transform = transforms.Compose(
+# #     [transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))]
+# # )
+# # mnist_dataset = MNIST("./data", train=True, download=True, transform=transform)
+
+# # # Initialize lists to store pixel values of central regions
+# # central_pixels = []
+
+# # # Loop over the dataset and extract central 4x4 region from each image
+# # for img, _ in mnist_dataset:
+# #     center_region = extract_center(img)
+# #     central_pixels.append(center_region)
+
+# # # Convert list to a single tensor
+# # central_pixels_tensor = torch.cat(central_pixels, dim=0)
+
+# # # Calculate mean and std of central pixels
+# # mean_central = central_pixels_tensor.mean()
+# # std_central = central_pixels_tensor.std()
+
+# # mean_central, std_central
+
+
+# # # %%
 
 # # %%
+# # # Example usage
+# mean = torch.tensor([-0.0697])
+# std = torch.tensor([0.4373])
+# batch_size = 10  # Number of samples to generate
 
+# # Generate images
+# images = generate_centre_z_T(mean, std, batch_size)
+# print(images.shape)
 
-# # Example usage
-# # Assuming 'img' is a 28x28 image from MNIST dataset
-# img, _ = dataset[0]  # Replace with actual image from your dataset
-# center_region = extract_center(img)
-# plt.imshow(center_region.squeeze(), cmap="gray")
-
-# # %%
-# # Load MNIST dataset
-# transform = transforms.Compose(
-#     [transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))]
-# )
-# mnist_dataset = MNIST("./data", train=True, download=True, transform=transform)
-
-# # Initialize lists to store pixel values of central regions
-# central_pixels = []
-
-# # Loop over the dataset and extract central 4x4 region from each image
-# for img, _ in mnist_dataset:
-#     center_region = extract_center(img)
-#     central_pixels.append(center_region)
-
-# # Convert list to a single tensor
-# central_pixels_tensor = torch.cat(central_pixels, dim=0)
-
-# # Calculate mean and std of central pixels
-# mean_central = central_pixels_tensor.mean()
-# std_central = central_pixels_tensor.std()
-
-# mean_central, std_central
-
-
-# # %%
-
-# %%
-# # Example usage
-mean = torch.tensor([-0.0697])
-std = torch.tensor([0.4373])
-batch_size = 10  # Number of samples to generate
-
-# Generate images
-images = generate_centre_z_T(mean, std, batch_size)
-print(images.shape)
-
-# Visualize the images
-fig, axs = plt.subplots(1, batch_size, figsize=(20, 2))
-for i, img in enumerate(images):
-    axs[i].imshow(img.squeeze(), cmap="gray")
-    axs[i].axis("off")
-plt.show()
-"""
+# # Visualize the images
+# fig, axs = plt.subplots(1, batch_size, figsize=(20, 2))
+# for i, img in enumerate(images):
+#     axs[i].imshow(img.squeeze(), cmap="gray")
+#     axs[i].axis("off")
+# plt.show()
+# """

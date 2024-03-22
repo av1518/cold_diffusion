@@ -18,7 +18,7 @@ class DDPM_custom(nn.Module):
         super().__init__()
 
         self.gt = gt
-        self.n_T = n_T  # Number of time steps to use in training
+        self.n_T = n_T  # Number of time steps to use in training # this should be 27
         self.criterion = criterion  # loss metric
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
