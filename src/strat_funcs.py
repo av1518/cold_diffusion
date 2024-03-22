@@ -129,6 +129,48 @@ def sample_from_set(tensor_set, batch_size):
     return sampled_z_T
 
 
+def generate_4x4_z_T(batch_size):
+    # Load the saved bins and distribution
+    bins = torch.load("sample_sets/bins_zoom_level_24_NEAREST.pt")
+    distribution = torch.load("sample_sets/distribution_zoom_level_24_NEAREST.pt")
+
+    # Sample from the distribution for each image in the batch
+    sampled_pixel_indices = distribution.sample((batch_size, 4, 4))
+
+    # Convert sample indices to actual pixel values and to a PyTorch tensor
+    sampled_pixel_values = torch.tensor(bins[sampled_pixel_indices], dtype=torch.float)
+
+    # Initialize an empty tensor for the batch
+    batch_tensors = torch.empty((batch_size, 1, 28, 28))
+
+    # Interpolate each tensor to 28x28 and store in the batch
+    for i in range(batch_size):
+        resized_image = torch.nn.functional.interpolate(
+            sampled_pixel_values[i].unsqueeze(0).unsqueeze(0),
+            size=(28, 28),
+            mode="nearest",
+        )
+        batch_tensors[i] = resized_image.squeeze(0)
+
+    return batch_tensors
+
+
+# %%
+# Visualise sampling from create_and_interpolate_tensor
+# batch_size = 10  # Example batch size
+# batch_tensors = generate_4x4_z_T(batch_size)
+# print(batch_tensors.shape)  # Should be [batch_size, 1, 28, 28]
+
+# # visualise the images
+# fig, axs = plt.subplots(1, batch_size, figsize=(20, 2))
+# for i, img in enumerate(batch_tensors):
+#     axs[i].imshow(img.squeeze(), cmap="gray")
+#     axs[i].axis("off")
+# plt.show()
+
+# #print the pixel values
+# print(batch_tensors[0].view(-1))  # Print the pixel values of the first image in the batch
+
 # %% Visualize the zoomed images from the sample set
 # sample_set = torch.load("sample_sets/set_zoom_level_23.pt")
 # sampled_images = sample_from_set(sample_set, 4)

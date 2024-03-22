@@ -15,7 +15,7 @@ import wandb
 import json
 from datetime import datetime
 from gaussian_models import CNN
-from nn_D_centre_alt_1_pix import DDPM_custom
+from nn_D_centre_alt_4_pix import DDPM_custom
 
 # %%
 
@@ -23,7 +23,7 @@ from nn_D_centre_alt_1_pix import DDPM_custom
 
 learning_rate = 2e-4
 batch_size = 128
-n_T = 27
+n_T = 24
 
 
 tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])
@@ -122,13 +122,17 @@ for i in range(n_epoch):
         grid = make_grid(xh, nrow=4)
 
         # Save samples to `./contents` directory
-        save_image(grid, f"./contents_custom/alt_ddpm_sample_BI_{i:04d}.png")
+        save_image(grid, f"./contents_custom/alt_ddpm_NEAREST_4x4_distr_{i:04d}.png")
 
         # save model every 10 epochs
         if i % 10 == 0:
-            torch.save(ddpm.state_dict(), f"../saved_models/ddpm_alt_BI_{i}.pth")
+            torch.save(
+                ddpm.state_dict(), f"../saved_models/alt_ddpm_NEAREST_4x4_distr_{i}.pth"
+            )
 
-torch.save(ddpm.state_dict(), f"../saved_models/ddpm_alt_BI_{n_epoch}.pth")
+torch.save(
+    ddpm.state_dict(), f"../saved_models/alt_ddpm_NEAREST_4x4_distr_{n_epoch}.pth"
+)
 
 wandb.finish()
 # %%
@@ -139,7 +143,7 @@ plt.xlabel("Epoch")
 plt.ylabel("Average Loss")
 plt.title("DDPM Training Loss Curve")
 plt.legend()
-plt.savefig("./contents_custom/ddpm_loss_curve_alt_BI.png")
+plt.savefig("./contents_custom/alt_ddpm_NEAREST_4x4_distr_.png")
 plt.show()
 
 # %%
@@ -152,7 +156,7 @@ def save_metrics_to_json(filename, data):
 
 # save the mterics with a name based on learning rate
 
-metrics_filename = f"../saved_models/metrics_ddpm_alt_BI.json"
+metrics_filename = f"../saved_models/metrics_alt_ddpm_NEAREST_4x4_distr_.json"
 
 
 metrics_data = {
