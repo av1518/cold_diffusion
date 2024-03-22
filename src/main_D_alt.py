@@ -57,7 +57,7 @@ with torch.no_grad():
 
 # %% Training
 
-n_epoch = 50
+n_epoch = 100
 moving_avg_loss = []
 epoch_avg_losses = []  # List to store average loss per epoch
 test_avg_losses = []
@@ -105,8 +105,9 @@ for i in range(n_epoch):
         # Save samples to `./contents` directory
         save_image(grid, f"./contents_custom/alt_ddpm_sample_{i:04d}.png")
 
-        # save model
-        # torch.save(ddpm.state_dict(), f"./ddpm_mnist.pth")
+        # save model every 10 epochs
+        if i % 10 == 0:
+            torch.save(ddpm.state_dict(), f"../saved_models/ddpm_alt_{i}.pth")
 # %%
 # After training, plot and save the loss curve
 plt.plot(range(1, n_epoch + 1), epoch_avg_losses, label="Average Loss per Epoch")

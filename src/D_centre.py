@@ -73,6 +73,28 @@ def extract_center(img, target_size=2):
 def single_alternating_zoom(
     img, step, total_steps=28, interpolation=InterpolationMode.NEAREST
 ):
+    """
+    Applies a zooming operation to an image by alternately cropping from the top-left and bottom-right corners.
+    When training, the step (t) range should be U[1,27] inclusive.
+
+    Parameters:
+    - img (torch.Tensor): The input image.
+    - step (int): The current zoom step. Ranges from 0 (no zoom) to (total_steps - 1) for maximum zoom.
+    - total_steps (int, optional): The total number of steps available for zooming, defaulting to 28. This should be equal to the dimension of the image for a square image (e.g., 28 for a 28x28 image).
+    - interpolation (InterpolationMode, optional): The interpolation method used for resizing, defaulting to Nearest.
+
+    Returns:
+    - torch.Tensor: The zoomed image.
+
+    The zooming process is designed for a square image (e.g., 28x28 pixels). It alternates between cropping from the top-left and bottom-right corners of the image. Each step progressively zooms in on the image, reducing its effective size. The process allows for a total of 27 zoom steps, leading from an unzoomed state (28x28) to a fully zoomed state (1x1 pixel). The 'total_steps' parameter represents the total number of distinct states, including the original state and the fully zoomed state.
+
+    Examples of zoom steps for a 28x28 image:
+    - Step 0: No zoom is applied (28x28 pixels).
+    - Step 1: Zooms to 27x27 pixels.
+    - Step 2: Zooms to 26x26 pixels.
+    - ...
+    - Step 27: Zooms to a single pixel (1x1).
+    """
     _, h, w = img.shape
 
     # Determine the amount of reduction for top-left and bottom-right
@@ -127,7 +149,7 @@ def extract_central_pixels_from_loader(dataloader, steps=27):
     return central_pixels
 
 
-def sample_from_central_pixel_distribution(num_samples, batch_size):
+def sample_from_central_pixel_distribution(batch_size):
     # Load the histogram data
     central_pixels = np.load("central_pixels.npy")
 
@@ -157,7 +179,7 @@ def sample_from_central_pixel_distribution(num_samples, batch_size):
 
 
 """
-# %%
+
 num_samples = 2000  # Number of samples to draw
 sampled_pixels = sample_from_central_pixel_distribution(num_samples)
 
@@ -168,7 +190,7 @@ plt.ylabel("Frequency")
 plt.title("Distribution of Sampled Central Pixel in MNIST Training Set (Normalized)")
 plt.show()
 
-
+"""
 # %%
 
 # Define the transform and load the dataset
@@ -222,6 +244,8 @@ plt.title("Distribution of Sampled Central Pixel in MNIST Training Set (Normaliz
 plt.show()
 
 # %%
+dataset = MNIST("./data", train=True, download=True, transform=transforms.ToTensor())
+img, _ = dataset[2]  # Example image
 
 
 # Plotting
@@ -231,14 +255,16 @@ axes[0].set_title("Original")
 axes[0].axis("off")
 
 # Apply function and plot for various steps
-steps_to_test = [23, 24, 25, 26, 27]  # Modify as needed to test different steps
+steps_to_test = [0, 1, 25, 26, 27]  # Modify as needed to test different steps
 for i, step in enumerate(steps_to_test):
-    cropped_img = single_alternating_crop_resize(img, step)
+    cropped_img = single_alternating_zoom(img, step)
     axes[i + 1].imshow(cropped_img.squeeze(), cmap="gray")
     axes[i + 1].set_title(f"Step {step}")
     axes[i + 1].axis("off")
 
 plt.show()
+
+# %%
 """
 # %% Testing single zoom
 
@@ -339,3 +365,4 @@ for i, img in enumerate(images):
     axs[i].imshow(img.squeeze(), cmap="gray")
     axs[i].axis("off")
 plt.show()
+"""
