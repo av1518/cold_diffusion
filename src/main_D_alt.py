@@ -127,6 +127,8 @@ for i in range(n_epoch):
         if i % 10 == 0:
             torch.save(ddpm.state_dict(), f"../saved_models/ddpm_alt_BI_{i}.pth")
 
+torch.save(ddpm.state_dict(), f"../saved_models/ddpm_alt_BI_{n_epoch}.pth")
+
 wandb.finish()
 # %%
 # After training, plot and save the loss curve
