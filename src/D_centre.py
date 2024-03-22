@@ -9,6 +9,7 @@ from torchvision.transforms import InterpolationMode
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from torch.distributions.categorical import Categorical
+import numpy as np
 
 
 # -------------Centre zoom -----------------#
@@ -126,7 +127,7 @@ def extract_central_pixels_from_loader(dataloader, steps=27):
     return central_pixels
 
 
-def sample_from_central_pixel_distribution(num_samples):
+def sample_from_central_pixel_distribution(num_samples, batch_size):
     # Load the histogram data
     central_pixels = np.load("central_pixels.npy")
 
@@ -139,19 +140,24 @@ def sample_from_central_pixel_distribution(num_samples):
     probs_tensor = torch.tensor(probs, dtype=torch.float)
 
     # Create a Categorical distribution
-    distribution = Categorical(probs=probs_tensor)
+    distribution = torch.distributions.categorical.Categorical(probs=probs_tensor)
 
     # Sample from the distribution
-    samples = distribution.sample([num_samples])
+    samples = distribution.sample([batch_size])
 
     # Convert sample indices to actual pixel values
     sampled_pixel_values = bins[samples]
 
-    return sampled_pixel_values
+    # Convert the sampled pixel values to a PyTorch tensor
+    # and reshape it to [batch_size, 1, 1, 1] before expanding to [batch_size, 1, 28, 28]
+    sampled_images = torch.tensor(sampled_pixel_values, dtype=torch.float)
+    sampled_images = sampled_images.view(batch_size, 1, 1, 1).expand(-1, 1, 28, 28)
+
+    return sampled_images
 
 
+"""
 # %%
-# Example usage:
 num_samples = 2000  # Number of samples to draw
 sampled_pixels = sample_from_central_pixel_distribution(num_samples)
 
@@ -233,7 +239,7 @@ for i, step in enumerate(steps_to_test):
     axes[i + 1].axis("off")
 
 plt.show()
-
+"""
 # %% Testing single zoom
 
 # Load an example image from MNIST
