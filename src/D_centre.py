@@ -71,7 +71,7 @@ def extract_center(img, target_size=2):
 
 
 def single_alternating_zoom(
-    img, step, total_steps=28, interpolation=InterpolationMode.NEAREST
+    img, step, total_steps=28, interpolation=InterpolationMode.BILINEAR
 ):
     """
     Applies a zooming operation to an image by alternately cropping from the top-left and bottom-right corners.
@@ -122,7 +122,7 @@ def single_alternating_zoom(
 
 
 def single_alternating_zoom_batch(
-    images, steps, total_steps=28, interpolation=InterpolationMode.NEAREST
+    images, steps, total_steps=28, interpolation=InterpolationMode.BILINEAR
 ):
     batch_cropped_resized = []
     for img, step in zip(images, steps):
@@ -255,9 +255,11 @@ axes[0].set_title("Original")
 axes[0].axis("off")
 
 # Apply function and plot for various steps
-steps_to_test = [0, 1, 25, 26, 27]  # Modify as needed to test different steps
+steps_to_test = [0, 10, 25, 26, 27]  # Modify as needed to test different steps
 for i, step in enumerate(steps_to_test):
-    cropped_img = single_alternating_zoom(img, step)
+    cropped_img = single_alternating_zoom(
+        img, step, interpolation=InterpolationMode.NEAREST
+    )
     axes[i + 1].imshow(cropped_img.squeeze(), cmap="gray")
     axes[i + 1].set_title(f"Step {step}")
     axes[i + 1].axis("off")
