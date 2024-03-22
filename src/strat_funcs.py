@@ -15,61 +15,6 @@ import numpy as np
 # -------------Centre zoom -----------------#
 
 
-def single_center_crop_resize(img, time_step, interpolation=InterpolationMode.NEAREST):
-    _, h, w = img.shape
-    target_size = 28 - time_step
-
-    # Calculate center cropping coordinates
-    top = (h - target_size) // 2
-    left = (w - target_size) // 2
-
-    # Crop and resize
-    img_cropped_resized = F.resized_crop(
-        img, top, left, target_size, target_size, (h, w), interpolation=interpolation
-    )
-    return img_cropped_resized
-
-
-def batch_center_crop_resize(
-    images, time_steps, interpolation=InterpolationMode.NEAREST
-):
-    batch_cropped_resized = []
-    for img, t in zip(images, time_steps):
-        cropped_resized_img = single_center_crop_resize(img, t.item(), interpolation)
-        batch_cropped_resized.append(cropped_resized_img.unsqueeze(0))
-    return torch.cat(batch_cropped_resized, dim=0)
-
-
-def generate_centre_z_T(mean, std, batch_size):
-    # Ensure mean and std are float values
-    mean = mean.item() if isinstance(mean, torch.Tensor) else mean
-    std = std.item() if isinstance(std, torch.Tensor) else std
-
-    # Generate 4 values from the normal distribution for the 4 large blocks
-    # Each block is 7x7 pixels
-    block_values = torch.normal(mean, std, size=(batch_size, 1, 4, 4))
-
-    # Expand each block to 7x7 to fill the 28x28 image
-    expanded_tensor = torch.repeat_interleave(
-        torch.repeat_interleave(block_values, 7, dim=2), 7, dim=3
-    )
-    return expanded_tensor
-
-
-def extract_center(img, target_size=2):
-
-    _, height, width = img.shape
-
-    # Calculate the top-left corner of the central square
-    top = (height - target_size) // 2
-    left = (width - target_size) // 2
-
-    # Crop the central part of the image
-    center = F.crop(img, top, left, target_size, target_size)
-
-    return center
-
-
 def single_alternating_zoom(
     img, step, total_steps=28, interpolation=InterpolationMode.BILINEAR
 ):
@@ -178,6 +123,26 @@ def sample_from_central_pixel_distribution(batch_size):
     return sampled_images
 
 
+def sample_from_set(tensor_set, batch_size):
+    sampled_indices = torch.randint(0, tensor_set.size(0), (batch_size,))
+    sampled_z_T = tensor_set[sampled_indices]
+    return sampled_z_T
+
+
+# %% Visualize the zoomed images from the sample set
+# sample_set = torch.load("sample_sets/set_zoom_level_23.pt")
+# sampled_images = sample_from_set(sample_set, 4)
+
+# # Visualize the sampled images
+# fig, axs = plt.subplots(1, 4, figsize=(8, 2))
+# for i, img in enumerate(sampled_images):
+#     axs[i].imshow(img.squeeze(), cmap="gray")
+#     axs[i].axis("off")
+# plt.show()
+
+
+# %%
+
 # """
 
 # num_samples = 2000  # Number of samples to draw
@@ -244,50 +209,32 @@ def sample_from_central_pixel_distribution(batch_size):
 # plt.show()
 
 # # %%
-# dataset = MNIST("./data", train=True, download=True, transform=transforms.ToTensor())
-# img, _ = dataset[2]  # Example image
+# %%
+dataset = MNIST("./data", train=True, download=True, transform=transforms.ToTensor())
+img, _ = dataset[2]  # Example image
 
 
-# # Plotting
-# fig, axes = plt.subplots(1, 6, figsize=(15, 5))  # Change 6 to see more steps
-# axes[0].imshow(img.squeeze(), cmap="gray")
-# axes[0].set_title("Original")
-# axes[0].axis("off")
+# Plotting
+fig, axes = plt.subplots(1, 6, figsize=(15, 5))  # Change 6 to see more steps
+axes[0].imshow(img.squeeze(), cmap="gray")
+axes[0].set_title("Original")
+axes[0].axis("off")
 
 # # Apply function and plot for various steps
-# steps_to_test = [0, 10, 25, 26, 27]  # Modify as needed to test different steps
-# for i, step in enumerate(steps_to_test):
-#     cropped_img = single_alternating_zoom(
-#         img, step, interpolation=InterpolationMode.NEAREST
-#     )
-#     axes[i + 1].imshow(cropped_img.squeeze(), cmap="gray")
-#     axes[i + 1].set_title(f"Step {step}")
-#     axes[i + 1].axis("off")
+steps_to_test = [23, 24, 25, 26, 27]  # Modify as needed to test different steps
+for i, step in enumerate(steps_to_test):
+    cropped_img = single_alternating_zoom(
+        img, step, interpolation=InterpolationMode.BILINEAR
+    )
+    axes[i + 1].imshow(cropped_img.squeeze(), cmap="gray")
+    axes[i + 1].set_title(f"Step {step}")
+    axes[i + 1].axis("off")
 
-# plt.show()
+plt.show()
+# %%
 
 # # %%
 # """
-# # %% Testing single zoom
-
-# # Load an example image from MNIST
-# # dataset = MNIST("./data", train=True, download=True, transform=transforms.ToTensor())
-# # for i in range(0, 10):
-# #     img, _ = dataset[i]  # Example image
-
-# #     # visualise single_random_crop_resize:
-
-# #     zoomed_in = single_center_crop_resize(img, time_step=26)
-
-# #     # Visualize the results
-# #     fig, axes = plt.subplots(1, 2, figsize=(8, 4))
-# #     axes[0].imshow(img.squeeze(), cmap="gray")
-# #     axes[0].set_title("Original")
-# #     axes[0].axis("off")
-# #     axes[1].imshow(zoomed_in.squeeze(), cmap="gray")
-# #     axes[1].set_title("Zoomed In")
-# #     axes[1].axis("off")
-# #     plt.show()
 
 
 # # # %%
