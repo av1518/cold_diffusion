@@ -133,25 +133,48 @@ def single_alternating_zoom_batch(
     return torch.cat(batch_cropped_resized, dim=0)
 
 
-def extract_central_pixels_from_loader(dataloader, steps=27):
+def alt_zoom_no_expansion(
+    img, step, total_steps=28, interpolation=InterpolationMode.BILINEAR
+):
+    _, h, w = img.shape
+
+    top_left_reduction = (step + 1) // 2
+    bottom_right_reduction = step // 2
+
+    target_size = total_steps - top_left_reduction - bottom_right_reduction
+    target_size = max(target_size, 1)
+
+    top = top_left_reduction
+    left = top_left_reduction
+    bottom = h - bottom_right_reduction
+    right = w - bottom_right_reduction
+
+    # Cropping without resizing back to the original size
+    img_cropped = F.crop(img, top, left, bottom - top, right - left)
+
+    return img_cropped
+
+
+def extract_central_pixels_from_loader(dataloader, steps=24):
     central_pixels = []
 
     for batch, _ in tqdm(dataloader):
         for img in batch:
-            # Apply zoom to step 27
-            zoomed_img = single_alternating_zoom(img, steps)
-            # Take any pixel's value as the image is of uniform color
-            central_pixel = zoomed_img.view(-1)[
-                0
-            ].item()  # Extract the first pixel value
-            central_pixels.append(central_pixel)
+            # Apply zoom to get a single pixel
+            zoomed_img = alt_zoom_no_expansion(
+                img, steps, interpolation=InterpolationMode.NEAREST
+            )
+            dimensions = 28 - steps
+            # Extract the central 2x2 pixels
+            central_2x2 = zoomed_img.view(dimensions, dimensions).flatten().tolist()
+            central_pixels.extend(central_2x2)
 
     return central_pixels
 
 
 def sample_from_central_pixel_distribution(batch_size):
     # Load the histogram data
-    central_pixels = np.load("central_pixels.npy")
+    central_pixels = np.load("central_pixels_3x3.npy")
 
     # Calculate probabilities
     bins = np.linspace(-0.5, 0.5, num=257)  # 256 bins from -0.5 to 0.5
@@ -164,18 +187,88 @@ def sample_from_central_pixel_distribution(batch_size):
     # Create a Categorical distribution
     distribution = torch.distributions.categorical.Categorical(probs=probs_tensor)
 
-    # Sample from the distribution
-    samples = distribution.sample([batch_size])
-
-    # Convert sample indices to actual pixel values
-    sampled_pixel_values = bins[samples]
+    # Sample from the distribution for each of the 4 pixels in the 2x2 grid
+    sampled_pixel_values = bins[distribution.sample((batch_size, 4))]
 
     # Convert the sampled pixel values to a PyTorch tensor
-    # and reshape it to [batch_size, 1, 1, 1] before expanding to [batch_size, 1, 28, 28]
+    # Reshape to [batch_size, 2, 2] and then to [batch_size, 1, 2, 2] before expanding to [batch_size, 1, 28, 28]
     sampled_images = torch.tensor(sampled_pixel_values, dtype=torch.float)
-    sampled_images = sampled_images.view(batch_size, 1, 1, 1).expand(-1, 1, 28, 28)
+    sampled_images = (
+        sampled_images.view(batch_size, 2, 2).unsqueeze(1).expand(-1, 1, 28, 28)
+    )
 
     return sampled_images
+
+
+def sample_and_expand_grid_bilinear(batch_size):
+    # Load the histogram data
+    central_pixels = np.load("central_pixels_4x4.npy")
+
+    # Calculate probabilities
+    bins = np.linspace(-0.5, 0.5, num=257)  # 256 bins from -0.5 to 0.5
+    counts, _ = np.histogram(central_pixels, bins=bins)
+    probs = counts / counts.sum()
+
+    # Convert to PyTorch tensor
+    probs_tensor = torch.tensor(probs, dtype=torch.float)
+
+    # Create a Categorical distribution
+    distribution = Categorical(probs=probs_tensor)
+
+    # Sample from the distribution for each of the 16 pixels in the 4x4 grid
+    sampled_pixel_values = bins[distribution.sample((batch_size, 16))]
+
+    # Convert the sampled pixel values to a PyTorch tensor
+    # Reshape to [batch_size, 1, 4, 4]
+    sampled_images = torch.tensor(sampled_pixel_values, dtype=torch.float)
+    sampled_images = sampled_images.view(batch_size, 1, 4, 4)
+
+    # Resize the images to 28x28 using bilinear interpolation
+    resized_images = torch.nn.functional.interpolate(
+        sampled_images, size=(28, 28), mode="bilinear", align_corners=False
+    )
+
+    return resized_images
+
+
+# %%
+# Define the transform and load the dataset
+tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])
+train_dataset = MNIST("./data", train=True, download=True, transform=tf)
+train_dataloader = DataLoader(
+    train_dataset, batch_size=128, shuffle=True, num_workers=0, drop_last=True
+)
+
+# Extract central pixels from the dataloader
+central_pixels = extract_central_pixels_from_loader(train_dataloader)
+# %%
+import numpy as np
+
+# Plot the distribution of central pixels
+plt.hist(central_pixels, bins=257)
+plt.xlabel("Pixel Intensity")
+plt.ylabel("Frequency")
+plt.title("Distribution of Central Pixel in MNIST Training Set (Normalized)")
+plt.show()
+
+counts, bins = np.histogram(central_pixels, bins=256)
+probs = counts / len(central_pixels)
+
+# %%
+np.save("central_pixels_4x4.npy", central_pixels)
+# %%
+
+sample = sample_and_expand_grid_bilinear(2)
+
+# Visualize the sampled images
+fig, axs = plt.subplots(1, 2, figsize=(10, 5))
+for i, img in enumerate(sample):
+    axs[i].imshow(img.squeeze(), cmap="gray")
+    axs[i].axis("off")
+plt.show()
+
+
+# %%
 
 
 # """
