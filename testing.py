@@ -10,11 +10,11 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from torch.distributions.categorical import Categorical
 import numpy as np
-from D_centre import (
+from strat_funcs import (
     single_alternating_zoom_batch,
     sample_from_central_pixel_distribution,
 )
-from models import CNN
+from gaussian_models import CNN
 import torch.nn as nn
 
 tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])

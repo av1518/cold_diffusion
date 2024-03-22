@@ -2,7 +2,7 @@ from typing import Dict, Tuple
 import numpy as np
 import torch
 import torch.nn as nn
-from D_centre import (
+from strat_funcs import (
     single_alternating_zoom_batch,
     sample_from_central_pixel_distribution,
 )

@@ -1,5 +1,5 @@
 # %%
-from models import DDPM, CNN
+from gaussian_models import DDPM, CNN
 from torchvision.datasets import MNIST
 from torchvision import transforms
 import torch
