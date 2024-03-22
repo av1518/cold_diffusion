@@ -7,3 +7,5 @@
 /saved_models
 /src/contents_custom
 /src/wandb
+/src/contents_custom_no_regularisation
+/wandb
