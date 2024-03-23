@@ -39,7 +39,7 @@ test_dataloader = DataLoader(
 gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=n_hidden, act=nn.GELU)
 # For testing: (16, 32, 32, 16)
 # For more capacity (for example): (64, 128, 256, 128, 64)
-ddpm = DDPM(gt=gt, betas=betas, n_T=1000)
+ddpm = DDPM(gt=gt, betas=betas, n_T=1000, noise_scheduler="cosine")
 optim = torch.optim.Adam(ddpm.parameters(), lr=2e-4)
 
 accelerator = Accelerator()
@@ -78,7 +78,7 @@ for i in range(n_epoch):
         avg_loss = np.average(
             moving_avg_loss[max(len(moving_avg_loss) - 100, 0) :]
         )  # calculates the current average loss
-        pbar.set_description(f"100 Moving average Loss: {avg_loss:.3g}")
+        pbar.set_description(f"100 Moving average Loss: {avg_loss:.3g}, Epoch: {i}")
         optim.step()
 
         loss_item = loss.item()
@@ -105,10 +105,15 @@ for i in range(n_epoch):
         grid = make_grid(xh, nrow=4)
 
         # Save samples to `./contents` directory
-        save_image(grid, f"./contents/ddpm_sample_{i:04d}.png")
+        save_image(grid, f"./contents/ddpm_gaussian_cosine_sample_{i:04d}.png")
 
-        # save model
-        torch.save(ddpm.state_dict(), f"../saved_models/ddpm_gaussian_{i}.pth")
+        if i % 5 == 0:
+            torch.save(
+                ddpm.state_dict(), f"../saved_models/ddpm_gaussian_cosine_{i}.pth"
+            )
+
+torch.save(ddpm.state_dict(), f"../saved_models/ddpm_gaussian_cosine_{n_epoch}.pth")
+
 # %%
 # After training, plot and save the loss curve
 plt.plot(range(1, n_epoch + 1), epoch_avg_losses, label="Average Loss per Epoch")
@@ -117,7 +122,7 @@ plt.xlabel("Epoch")
 plt.ylabel("Average Loss")
 plt.title("DDPM Training Loss Curve")
 plt.legend()
-plt.savefig("./contents/ddpm_loss_curve.png")
+plt.savefig("../figures/ddpm_gaussian_cosine_loss_curve.png")
 plt.show()
 
 
@@ -128,7 +133,7 @@ def save_metrics_to_json(filename, data):
 
 # Save average loss per epoch to a JSON file with timestamp
 current_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-metrics_filename = f"./contents/ddpm_metrics_{current_date}.json"
+metrics_filename = f"../metrics/ddpm_gaussian_cosine.json"
 metrics_data = {
     "epoch_avg_losses": epoch_avg_losses,
     "test_avg_losses": test_avg_losses,

@@ -53,7 +53,7 @@ def ddpm_cosine_schedules(T: int, s=0.008) -> dict:
     alpha_t_1 = f_t(t - 1, T, s) / f_t(0, T, s)
     print(alpha_t_1)
 
-    beta_t = 1 - alpha_t / alpha_t_1
+    beta_t = torch.clamp(1 - alpha_t / alpha_t_1, 0, 0.02)
 
     alpha_t = torch.exp(torch.cumsum(torch.log(1 - beta_t), dim=0))
     return {"beta_t": beta_t, "alpha_t": alpha_t}
@@ -62,6 +62,7 @@ def ddpm_cosine_schedules(T: int, s=0.008) -> dict:
 def add_gaussian_noise(x: torch.Tensor, t: int, noise_schedule="linear"):
     """
     Adds Gaussian noise to the input tensor `x` at diffusion step `t`.
+    This is for demonstration purposes only and should not be used in training.
 
     @param x: The input tensor.
     @param t: The diffusion step.
@@ -77,9 +78,6 @@ def add_gaussian_noise(x: torch.Tensor, t: int, noise_schedule="linear"):
         noise_schedule = ddpm_cosine_schedules(1000, s=0.008)
 
     alpha_t = noise_schedule["alpha_t"][t]
-    print(alpha_t)
-    # alpha_t = alpha_t[t, None, None, None]  # Add singleton dimensions for broadcasting
-
     z_t = torch.sqrt(alpha_t) * x + torch.sqrt(1 - alpha_t) * epsilon
 
     return z_t

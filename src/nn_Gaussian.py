@@ -3,7 +3,7 @@ from typing import Dict, Tuple
 import numpy as np
 import torch
 import torch.nn as nn
-from utils import ddpm_schedules
+from utils import ddpm_schedules, ddpm_cosine_schedules
 
 
 class CNNBlock(nn.Module):
@@ -120,12 +120,22 @@ class DDPM(nn.Module):
         betas: Tuple[float, float],
         n_T: int,
         criterion: nn.Module = nn.MSELoss(),
+        noise_scheduler="linear",
     ) -> None:
         super().__init__()
 
         self.gt = gt
 
-        noise_schedule = ddpm_schedules(betas[0], betas[1], n_T)
+        if noise_scheduler == "linear":
+            noise_schedule = ddpm_schedules(betas[0], betas[1], n_T)
+
+        elif noise_scheduler == "cosine":
+            noise_schedule = ddpm_cosine_schedules(n_T)
+
+        else:
+            raise ValueError(
+                f"Invalid noise scheduler: {noise_scheduler}. Please use 'linear' or 'cosine'."
+            )
 
         # `register_buffer` will track these tensors for device placement, but
         # not store them as model parameters. This is useful for constants.
@@ -226,10 +236,10 @@ class DDPM(nn.Module):
 
         _one = torch.ones(n_sample, device=device)
         z_t = torch.randn(n_sample, *size, device=device)
+
         for i in range(self.n_T, 0, -1):
             alpha_t = self.alpha_t[i]
             beta_t = self.beta_t[i]
-
             # First line of loop:
             z_t -= (beta_t / torch.sqrt(1 - alpha_t)) * self.gt(
                 z_t, (i / self.n_T) * _one
@@ -240,5 +250,4 @@ class DDPM(nn.Module):
                 # Last line of loop:
                 z_t += torch.sqrt(beta_t) * torch.randn_like(z_t)
             # (We don't add noise at the final step - i.e., the last line of the algorithm)
-
         return z_t
