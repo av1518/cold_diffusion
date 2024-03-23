@@ -40,10 +40,14 @@ class DDPM_zoom_4x4_distr(nn.Module):
         # cnn takes in the degraded image and the time step
         return self.criterion(x, self.gt(z_t, t_batch.float() / self.n_T))
 
-    def sample(self, n_samples: int, device) -> torch.Tensor:
+    def sample(self, n_samples: int, device, keep_steps=False) -> torch.Tensor:
+        steps = []
+
         z_T = generate_4x4_z_T(n_samples)
         # shape of z_T is [num_samples, 1, 28, 28]
         z_T = z_T.to(device)
+
+        steps.append(z_T)
 
         for s in range(self.n_T, 0, -1):
             # go from s = 27 to s = 1
@@ -51,6 +55,13 @@ class DDPM_zoom_4x4_distr(nn.Module):
             # ^ shape of scaled_time is [num_samples]
             x_hat = self.gt(z_T, scaled_time)
             z_T = single_alternating_zoom_batch(
-                x_hat, torch.full((n_samples,), s - 1, device=device)
+                x_hat,
+                torch.full((n_samples,), s - 1, device=device),
+                interpolation=InterpolationMode.NEAREST,
             )
-        return z_T
+            steps.append(z_T)
+
+        if keep_steps:
+            return steps
+        else:
+            return z_T

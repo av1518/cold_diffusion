@@ -3,6 +3,7 @@ import json
 import matplotlib.pyplot as plt
 import torch
 from torchvision.utils import save_image, make_grid
+from strat_funcs import generate_4x4_z_T, single_alternating_zoom_batch
 
 # %%
 # Paths to your JSON files
@@ -101,7 +102,7 @@ cosine_bad = torch.load("./sample_sets/samples_gaussian_cosine_bad.pt")
 zoom_5x5_good = torch.load("./sample_sets/samples_zoom_5x5_good.pt")
 zoom_5x5_bad = torch.load("./sample_sets/samples_zoom_5x5.pt")
 zoom_4x4_good = torch.load("./sample_sets/samples_zoom_4x4_good.pt")
-zoom_4x4_bad = torch.load("./sample_sets/samples_zoom_4x4_bad.pt")
+zoom_4x4_bad = torch.load("./sample_sets/samples_zoom_4x4.pt")
 
 
 def extract_samples(sample_tensor):
@@ -134,14 +135,14 @@ def plot_samples(sample_list, title):
 
     # Plot
     plt.figure(figsize=(10, 10))
-    plt.imshow(grid.permute(1, 2, 0), cmap="gray")
+    plt.imshow(grid.permute(1, 2, 0))
     plt.title(title)
     plt.axis("off")
     plt.savefig(f"../figures/{title}.png", dpi=500, bbox_inches="tight")
     plt.show()
 
 
-# Now you can plot each set of samples
+# %%
 plot_samples(linear_good, "Guassian Noise (Linear Schedule) Good Samples")
 plot_samples(linear_bad, "Gaussian Noise (Linear Schedule) Bad Samples")
 plot_samples(cosine_good, "Gaussian Noise (Cosine Schedule) Good Samples")
