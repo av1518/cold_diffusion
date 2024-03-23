@@ -7,7 +7,7 @@ from strat_funcs import single_alternating_zoom_batch, sample_from_set
 sample_set = torch.load("sample_sets/set_zoom_level_23.pt")
 
 
-class DDPM_custom(nn.Module):
+class DDPM_zoom_5x5_set(nn.Module):
     def __init__(
         self,
         gt,

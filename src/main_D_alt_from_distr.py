@@ -15,7 +15,7 @@ import wandb
 import json
 from datetime import datetime
 from nn_Gaussian import CNN
-from nn_D_centre_alt_4_pix import DDPM_custom
+from nn_zoom_4x4_distr import DDPM_zoom_4x4_distr
 
 # %%
 
@@ -43,7 +43,7 @@ test_dataloader = DataLoader(
 gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=(16, 32, 32, 16), act=nn.GELU)
 # For testing: (16, 32, 32, 16)
 # For more capacity (for example): (64, 128, 256, 128, 64)
-ddpm = DDPM_custom(gt=gt, n_T=n_T, criterion=nn.MSELoss())
+ddpm = DDPM_zoom_4x4_distr(gt=gt, n_T=n_T, criterion=nn.MSELoss())
 optim = torch.optim.Adam(ddpm.parameters(), lr=learning_rate)
 
 accelerator = Accelerator()

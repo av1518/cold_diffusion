@@ -1,6 +1,6 @@
 # %%
 from nn_Gaussian import DDPM, CNN
-from nn_D_centre_alt_4_pix import DDPM_custom
+from nn_zoom_4x4_distr import DDPM_custom
 from torchvision.datasets import MNIST
 from torchvision import transforms
 import torch

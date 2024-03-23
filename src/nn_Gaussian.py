@@ -238,6 +238,7 @@ class DDPM(nn.Module):
         z_t = torch.randn(n_sample, *size, device=device)
 
         for i in range(self.n_T, 0, -1):
+            print(i)
             alpha_t = self.alpha_t[i]
             beta_t = self.beta_t[i]
             # First line of loop:

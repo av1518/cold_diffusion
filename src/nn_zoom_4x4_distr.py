@@ -8,7 +8,7 @@ from torchvision.transforms import InterpolationMode
 sample_set = torch.load("sample_sets/set_zoom_level_23.pt")
 
 
-class DDPM_custom(nn.Module):
+class DDPM_zoom_4x4_distr(nn.Module):
     def __init__(
         self,
         gt,
