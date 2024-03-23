@@ -1,7 +1,10 @@
 # %%
 import json
 import matplotlib.pyplot as plt
+import torch
+from torchvision.utils import save_image, make_grid
 
+# %%
 # Paths to your JSON files
 cosine_json_file_path = "../metrics/fid_gaussian_cosine.json"
 linear_json_file_path = "../metrics/fid_gaussian_linear.json"
@@ -88,3 +91,62 @@ plt.ylabel("FID", fontsize=12)
 plt.grid(True)
 plt.legend()
 plt.show()
+
+# %% Plot good and bad samples
+
+linear_good = torch.load("./sample_sets/samples_gaussian_linear_good.pt")
+linear_bad = torch.load("./sample_sets/samples_gaussian_linear_bad.pt")
+cosine_good = torch.load("./sample_sets/samples_gaussian_cosine_good.pt")
+cosine_bad = torch.load("./sample_sets/samples_gaussian_cosine_bad.pt")
+zoom_5x5_good = torch.load("./sample_sets/samples_zoom_5x5_good.pt")
+zoom_5x5_bad = torch.load("./sample_sets/samples_zoom_5x5.pt")
+zoom_4x4_good = torch.load("./sample_sets/samples_zoom_4x4_good.pt")
+zoom_4x4_bad = torch.load("./sample_sets/samples_zoom_4x4_bad.pt")
+
+
+def extract_samples(sample_tensor):
+    samples = []
+    for i in range(len(sample_tensor)):
+        samples.append(sample_tensor[i][0].squeeze())
+    return samples
+
+
+linear_good = extract_samples(linear_good)
+linear_bad = extract_samples(linear_bad)
+cosine_good = extract_samples(cosine_good)
+cosine_bad = extract_samples(cosine_bad)
+zoom_5x5_good = extract_samples(zoom_5x5_good)
+zoom_5x5_bad = extract_samples(zoom_5x5_bad)
+zoom_4x4_good = extract_samples(zoom_4x4_good)
+zoom_4x4_bad = extract_samples(zoom_4x4_bad)
+
+
+def plot_samples(sample_list, title):
+    # Stack the samples to create a single tensor
+    samples_tensor = torch.stack(sample_list).unsqueeze(1)
+    print(samples_tensor.shape)
+
+    # Move the tensor to CPU
+    samples_tensor_cpu = samples_tensor.cpu()
+
+    # Create a grid of images
+    grid = make_grid(samples_tensor_cpu, nrow=3, normalize=True)
+
+    # Plot
+    plt.figure(figsize=(10, 10))
+    plt.imshow(grid.permute(1, 2, 0), cmap="gray")
+    plt.title(title)
+    plt.axis("off")
+    plt.savefig(f"../figures/{title}.png", dpi=500, bbox_inches="tight")
+    plt.show()
+
+
+# Now you can plot each set of samples
+plot_samples(linear_good, "Guassian Noise (Linear Schedule) Good Samples")
+plot_samples(linear_bad, "Gaussian Noise (Linear Schedule) Bad Samples")
+plot_samples(cosine_good, "Gaussian Noise (Cosine Schedule) Good Samples")
+plot_samples(cosine_bad, "Gaussian Noise (Cosine Schedule) Bad Samples")
+plot_samples(zoom_5x5_good, "Zoom Bilinear Set Good Samples")
+plot_samples(zoom_5x5_bad, "Zoom Bilinear Set Bad Samples")
+plot_samples(zoom_4x4_good, "Zoom Nearest Distribution Good Samples")
+plot_samples(zoom_4x4_bad, "Zoom Nearest Distribution Samples")
