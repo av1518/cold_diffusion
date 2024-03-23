@@ -39,7 +39,7 @@ test_dataloader = DataLoader(
 gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=n_hidden, act=nn.GELU)
 # For testing: (16, 32, 32, 16)
 # For more capacity (for example): (64, 128, 256, 128, 64)
-ddpm = DDPM(gt=gt, betas=betas, n_T=1000, noise_scheduler="cosine")
+ddpm = DDPM(gt=gt, betas=betas, n_T=1000, noise_scheduler="linear")
 optim = torch.optim.Adam(ddpm.parameters(), lr=2e-4)
 
 accelerator = Accelerator()
@@ -105,14 +105,12 @@ for i in range(n_epoch):
         grid = make_grid(xh, nrow=4)
 
         # Save samples to `./contents` directory
-        save_image(grid, f"./contents/ddpm_gaussian_cosine_sample_{i:04d}.png")
+        save_image(grid, f"./contents/ddpm_gaussian_linear_sample_{i:04d}.png")
 
         if i % 5 == 0:
-            torch.save(
-                ddpm.state_dict(), f"../saved_models/ddpm_gaussian_cosine_{i}.pth"
-            )
+            torch.save(ddpm.state_dict(), f"../saved_models/ddpm_linear_cosine_{i}.pth")
 
-torch.save(ddpm.state_dict(), f"../saved_models/ddpm_gaussian_cosine_{n_epoch}.pth")
+torch.save(ddpm.state_dict(), f"../saved_models/ddpm_gaussian_linear_{n_epoch}.pth")
 
 # %%
 # After training, plot and save the loss curve

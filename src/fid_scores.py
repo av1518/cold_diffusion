@@ -1,5 +1,6 @@
 # %%
 from nn_Gaussian import DDPM, CNN
+from nn_D_centre_alt_4_pix import DDPM_custom
 from torchvision.datasets import MNIST
 from torchvision import transforms
 import torch
@@ -43,7 +44,7 @@ def calculate_FID(n_compare, real_dataset, model_to_sample, model_device):
     model_to_sample.eval()
     with torch.no_grad():
         # Generate samples and process for FID computation
-        samples = model_to_sample.sample(n_compare, (1, 28, 28), model_device)
+        samples = model_to_sample.sample(n_compare, model_device)
         samples = samples.repeat(1, 3, 1, 1)  # Ensure samples have 3 channels
         # Normalize and convert to 8-bit unsigned integers
         samples = (samples / 2 + 0.5) * 255
@@ -59,16 +60,13 @@ def calculate_FID(n_compare, real_dataset, model_to_sample, model_device):
 
 # %%
 n_hidden = (16, 32, 32, 16)
-
-
-# Setup
-n_hidden = (16, 32, 32, 16)
 device = "cuda" if torch.cuda.is_available() else "cpu"
+n_T = 23
 
 # Initialize DDPM model
-decoder = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=n_hidden, act=nn.GELU)
-decoder.to(device)
-ddpm = DDPM(gt=decoder, betas=(1e-4, 0.02), n_T=1000)
+gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=n_hidden, act=nn.GELU)
+gt.to(device)
+ddpm = DDPM_custom(gt=gt, n_T=n_T, criterion=nn.MSELoss())
 ddpm.to(device)
 
 # Load MNIST dataset
@@ -84,8 +82,8 @@ fid_metrics = {}
 
 
 # FID Calculation and Saving Scores for each epoch
-for epoch in range(0, 20, 20):
-    model_path = f"../saved_models/ddpm_gaussian_{epoch}.pth"
+for epoch in range(0, 110, 10):
+    model_path = f"../saved_models/ddpm_alt_BI_5x5_set_{epoch}.pth"
 
     # Load the model
     ddpm.load_state_dict(torch.load(model_path, map_location=device))
@@ -99,7 +97,7 @@ for epoch in range(0, 20, 20):
     fid_metrics[f"Epoch {epoch}"] = fid_score
 
 # Save the FID metrics to a file in the metrics folder
-fid_metrics_filepath = os.path.join(metrics_dir, "fid_metrics.json")
+fid_metrics_filepath = os.path.join(metrics_dir, "fid_zoom_5x5_set.json")
 with open(fid_metrics_filepath, "w") as f:
     json.dump(fid_metrics, f, indent=4)
 
