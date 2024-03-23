@@ -74,6 +74,7 @@ def display_all_images(
 
 epoch = 100
 
+n_T_4x4 = 24
 
 model_path = f"../saved_models/alt_ddpm_NEAREST_4x4_distr_{epoch}.pth"
 n_hidden = (16, 32, 32, 16)
@@ -85,8 +86,8 @@ zoom_levels = [5, 10, 15, 20, 24]  # Different levels of zoom
 gt_distr = CNN(
     in_channels=1, expected_shape=(28, 28), n_hidden=(16, 32, 32, 16), act=nn.GELU
 )
-model = DDPM_zoom_4x4_distr(gt=gt_distr, n_T=24, criterion=nn.MSELoss())
-model.load_state_dict(torch.load(model_path))
+model_4x4 = DDPM_zoom_4x4_distr(gt=gt_distr, n_T=n_T_4x4, criterion=nn.MSELoss())
+model_4x4.load_state_dict(torch.load(model_path))
 
 # Load the MNIST dataset
 tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])
@@ -113,8 +114,8 @@ for i, img in enumerate(images):
         img, zoom_level, interpolation=InterpolationMode.NEAREST
     )
     zoomed_in.append(zoomed_img.squeeze())
-    recon_img = model.gt(
-        zoomed_img.unsqueeze(0), torch.tensor([zoom_level / 27])
+    recon_img = model_4x4.gt(
+        zoomed_img.unsqueeze(0), torch.tensor([zoom_level / n_T_4x4])
     ).squeeze()
     reconstructions.append(recon_img)
 
@@ -142,13 +143,13 @@ model_path = f"../saved_models/ddpm_alt_BI_{epoch}.pth"
 n_hidden = (16, 32, 32, 16)
 
 num_images = 5  # Number of images to process
-zoom_levels = [5, 10, 15, 20, 24]  # Different levels of zoom
+zoom_levels = [5, 10, 15, 20, 23]  # Different levels of zoom
 
 gt_distr = CNN(
     in_channels=1, expected_shape=(28, 28), n_hidden=(16, 32, 32, 16), act=nn.GELU
 )
-model = DDPM_zoom_4x4_distr(gt=gt_distr, n_T=24, criterion=nn.MSELoss())
-model.load_state_dict(torch.load(model_path))
+model_5x5 = DDPM_zoom_4x4_distr(gt=gt_distr, n_T=23, criterion=nn.MSELoss())
+model_5x5.load_state_dict(torch.load(model_path))
 
 
 original_titles = ["Original" for _ in range(num_images)]
@@ -164,8 +165,8 @@ for i, img in enumerate(images):
         img, zoom_level, interpolation=InterpolationMode.BILINEAR
     )
     zoomed_in.append(zoomed_img.squeeze())
-    recon_img = model.gt(
-        zoomed_img.unsqueeze(0), torch.tensor([zoom_level / 27])
+    recon_img = model_5x5.gt(
+        zoomed_img.unsqueeze(0), torch.tensor([zoom_level / 23])
     ).squeeze()
     reconstructions.append(recon_img)
 
