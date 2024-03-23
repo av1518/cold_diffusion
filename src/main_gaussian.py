@@ -108,7 +108,9 @@ for i in range(n_epoch):
         save_image(grid, f"./contents/ddpm_gaussian_linear_sample_{i:04d}.png")
 
         if i % 5 == 0:
-            torch.save(ddpm.state_dict(), f"../saved_models/ddpm_linear_cosine_{i}.pth")
+            torch.save(
+                ddpm.state_dict(), f"../saved_models/ddpm_gaussian_linear_{i}.pth"
+            )
 
 torch.save(ddpm.state_dict(), f"../saved_models/ddpm_gaussian_linear_{n_epoch}.pth")
 
@@ -120,7 +122,7 @@ plt.xlabel("Epoch")
 plt.ylabel("Average Loss")
 plt.title("DDPM Training Loss Curve")
 plt.legend()
-plt.savefig("../figures/ddpm_gaussian_cosine_loss_curve.png")
+plt.savefig("../figures/ddpm_gaussian_linear_loss_curve.png")
 plt.show()
 
 
@@ -131,7 +133,7 @@ def save_metrics_to_json(filename, data):
 
 # Save average loss per epoch to a JSON file with timestamp
 current_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-metrics_filename = f"../metrics/ddpm_gaussian_cosine.json"
+metrics_filename = f"../metrics/ddpm_gaussian_linear.json"
 metrics_data = {
     "epoch_avg_losses": epoch_avg_losses,
     "test_avg_losses": test_avg_losses,
