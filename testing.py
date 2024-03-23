@@ -14,7 +14,7 @@ from strat_funcs import (
     single_alternating_zoom_batch,
     sample_from_central_pixel_distribution,
 )
-from gaussian_models import CNN
+from nn_Gaussian import CNN
 import torch.nn as nn
 
 tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])

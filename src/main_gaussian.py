@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 import json
 from datetime import datetime
-from gaussian_models import DDPM, CNN
+from nn_Gaussian import DDPM, CNN
 
 
 # %%

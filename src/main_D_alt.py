@@ -14,7 +14,7 @@ import wandb
 
 import json
 from datetime import datetime
-from gaussian_models import CNN
+from nn_Gaussian import CNN
 from nn_D_centre_alt_1_pix import DDPM_custom
 
 # %%

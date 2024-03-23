@@ -3,7 +3,7 @@ import torch
 from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 from nn_D_centre_alt_1_pix import DDPM_custom
-from gaussian_models import CNN
+from nn_Gaussian import CNN
 from strat_funcs import single_alternating_zoom
 from torch import nn
 
