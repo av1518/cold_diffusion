@@ -19,6 +19,7 @@ from gaussian_models import DDPM, CNN
 
 # parameters
 n_hidden = (16, 32, 32, 16)
+betas = (1e-4, 0.02)
 
 tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])
 # normalise with mean 0.5 and std 1.0
@@ -38,7 +39,7 @@ test_dataloader = DataLoader(
 gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=n_hidden, act=nn.GELU)
 # For testing: (16, 32, 32, 16)
 # For more capacity (for example): (64, 128, 256, 128, 64)
-ddpm = DDPM(gt=gt, betas=(1e-4, 0.02), n_T=1000)
+ddpm = DDPM(gt=gt, betas=betas, n_T=1000)
 optim = torch.optim.Adam(ddpm.parameters(), lr=2e-4)
 
 accelerator = Accelerator()
