@@ -9,25 +9,28 @@ from torchvision import transforms
 from torchvision.datasets import MNIST
 from torchvision.utils import save_image, make_grid
 import matplotlib.pyplot as plt
+import wandb
+
 
 import json
-from datetime import datetime
-from nn_Gaussian import DDPM, CNN
-
+from nn_ddpm import CNN
+from nn_zoom_nearest import DDPM_zoom_4x4_distr
 
 # %%
 
-# parameters
-n_hidden = (16, 32, 32, 16)
-betas = (1e-4, 0.02)
+# def main():
+
+learning_rate = 2e-4
+batch_size = 128
+n_T = 24
+
 
 tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])
-# normalise with mean 0.5 and std 1.0
 
 # Load the training dataset
 train_dataset = MNIST("./data", train=True, download=True, transform=tf)
 train_dataloader = DataLoader(
-    train_dataset, batch_size=128, shuffle=True, num_workers=0, drop_last=True
+    train_dataset, batch_size=batch_size, shuffle=True, num_workers=0, drop_last=True
 )
 
 # Load the test dataset
@@ -36,11 +39,11 @@ test_dataloader = DataLoader(
     test_dataset, batch_size=128, shuffle=False, num_workers=0, drop_last=True
 )
 
-gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=n_hidden, act=nn.GELU)
+gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=(16, 32, 32, 16), act=nn.GELU)
 # For testing: (16, 32, 32, 16)
 # For more capacity (for example): (64, 128, 256, 128, 64)
-ddpm = DDPM(gt=gt, betas=betas, n_T=1000, noise_scheduler="linear")
-optim = torch.optim.Adam(ddpm.parameters(), lr=2e-4)
+ddpm = DDPM_zoom_4x4_distr(gt=gt, n_T=n_T, criterion=nn.MSELoss())
+optim = torch.optim.Adam(ddpm.parameters(), lr=learning_rate)
 
 accelerator = Accelerator()
 
@@ -55,14 +58,25 @@ for x, _ in train_dataloader:
 
 with torch.no_grad():
     ddpm(x)
+    print(ddpm(x))
     print("Passed initial test")
 
 # %% Training
+
 
 n_epoch = 100
 moving_avg_loss = []
 epoch_avg_losses = []  # List to store average loss per epoch
 test_avg_losses = []
+
+wandb.init(project="Custom-Diffusion", entity="av662")
+
+wandb.config = {
+    "learning_rate": learning_rate,
+    "epochs": n_epoch,
+    "batch_size": batch_size,
+}
+
 
 for i in range(n_epoch):
     ddpm.train()
@@ -83,6 +97,7 @@ for i in range(n_epoch):
 
         loss_item = loss.item()
         epoch_losses.append(loss_item)
+        wandb.log({"avg_train_loss": loss_item})
 
     epoch_avg_loss = np.mean(epoch_losses)
     epoch_avg_losses.append(epoch_avg_loss)
@@ -97,23 +112,28 @@ for i in range(n_epoch):
 
         test_avg_loss = np.mean(test_losses)
         test_avg_losses.append(test_avg_loss)
+        wandb.log({"avg_test_loss": test_avg_loss})
 
-        xh = ddpm.sample(n_sample=16, size=(1, 28, 28), device=accelerator.device)
+        xh = ddpm.sample(n_samples=16, device=accelerator.device)
         # Can get device explicitly with `accelerator.device`
         # ^ make 16 samples, The size of each sample to generate (excluding the batch dimension).
         # This should match the expected input size of the model.
         grid = make_grid(xh, nrow=4)
 
         # Save samples to `./contents` directory
-        save_image(grid, f"./contents/ddpm_gaussian_linear_sample_{i:04d}.png")
+        save_image(grid, f"./contents_custom/alt_ddpm_NEAREST_4x4_distr_{i:04d}.png")
 
-        if i % 5 == 0:
+        # save model every 10 epochs
+        if i % 10 == 0:
             torch.save(
-                ddpm.state_dict(), f"../saved_models/ddpm_gaussian_linear_{i}.pth"
+                ddpm.state_dict(), f"../saved_models/alt_ddpm_NEAREST_4x4_distr_{i}.pth"
             )
 
-torch.save(ddpm.state_dict(), f"../saved_models/ddpm_gaussian_linear_{n_epoch}.pth")
+torch.save(
+    ddpm.state_dict(), f"../saved_models/alt_ddpm_NEAREST_4x4_distr_{n_epoch}.pth"
+)
 
+wandb.finish()
 # %%
 # After training, plot and save the loss curve
 plt.plot(range(1, n_epoch + 1), epoch_avg_losses, label="Average Loss per Epoch")
@@ -122,8 +142,10 @@ plt.xlabel("Epoch")
 plt.ylabel("Average Loss")
 plt.title("DDPM Training Loss Curve")
 plt.legend()
-plt.savefig("../figures/ddpm_gaussian_linear_loss_curve.png")
+plt.savefig("./contents_custom/alt_ddpm_NEAREST_4x4_distr_.png")
 plt.show()
+
+# %%
 
 
 def save_metrics_to_json(filename, data):
@@ -131,9 +153,11 @@ def save_metrics_to_json(filename, data):
         json.dump(data, f, indent=4)
 
 
-# Save average loss per epoch to a JSON file with timestamp
-current_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-metrics_filename = f"../metrics/ddpm_gaussian_linear.json"
+# save the mterics with a name based on learning rate
+
+metrics_filename = f"../saved_models/metrics_alt_ddpm_NEAREST_4x4_distr_.json"
+
+
 metrics_data = {
     "epoch_avg_losses": epoch_avg_losses,
     "test_avg_losses": test_avg_losses,

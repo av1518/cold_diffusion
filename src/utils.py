@@ -1,5 +1,6 @@
 import torch
 from typing import Dict
+from torchmetrics.image.fid import FrechetInceptionDistance
 
 
 def ddpm_schedules(beta1: float, beta2: float, T: int) -> Dict[str, torch.Tensor]:
@@ -81,3 +82,49 @@ def add_gaussian_noise(x: torch.Tensor, t: int, noise_schedule="linear"):
     z_t = torch.sqrt(alpha_t) * x + torch.sqrt(1 - alpha_t) * epsilon
 
     return z_t
+
+
+def calculate_FID(n_compare, real_dataset, model_to_sample, model_device):
+    """
+    Calculate FID using standard inception network for saved models.
+
+    Args:
+    n_compare (int): Number of samples to compare.
+    real_dataset (torchvision.datasets): Dataset containing real images.
+    model_to_sample (torch.nn.Module): Model to generate fake samples.
+    model_device (torch.device): Device to perform calculations (GPU).
+
+    Returns:
+    float: Computed FID score.
+    """
+
+    # Clone the real dataset and convert to 3 channel images, keep on GPU
+    real = real_dataset.data.clone().unsqueeze(1).repeat(1, 3, 1, 1)
+    real = real.to(model_device, dtype=torch.float32)
+    # Normalize to [0, 1] and then convert to 8-bit unsigned integers
+    real = (real / 2 + 0.5) * 255
+    real = real.to(torch.uint8)
+    n_real = real.shape[0]
+    assert n_compare <= n_real
+
+    metric = FrechetInceptionDistance()
+    metric.to(model_device)  # Move metric computation to GPU
+
+    # Update metric with real samples
+    metric.update(real[:n_compare], real=True)
+
+    model_to_sample.eval()
+    with torch.no_grad():
+        # Generate samples and process for FID computation
+        samples = model_to_sample.sample(n_compare, model_device)
+        samples = samples.repeat(1, 3, 1, 1)  # Ensure samples have 3 channels
+        # Normalize and convert to 8-bit unsigned integers
+        samples = (samples / 2 + 0.5) * 255
+        samples = samples.to(torch.uint8)
+
+        # Update metric with generated samples
+        metric.update(samples, real=False)
+
+    # Compute FID score
+    fid_score = metric.compute()
+    return fid_score.item()  # Convert to Python float if needed

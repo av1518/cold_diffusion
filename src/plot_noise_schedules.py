@@ -1,7 +1,15 @@
+## @file ddpm_noise_schedules
+#  @brief Plots linear and cosine noise schedules in DDPM using MNIST image.
+#
+#  This script generates linear and cosine noise schedules, then applies them to an
+#  MNIST image for visualization. It compares original and noisy images, and showcases
+#  the noise impact at different timesteps for both schedules. We also plot the noise
+#  levels for all time steps.
+
+
 # %%
 import matplotlib.pyplot as plt
 from utils import ddpm_schedules, ddpm_cosine_schedules, add_gaussian_noise
-import torch
 from torchvision.datasets import MNIST
 from torchvision import transforms
 
@@ -14,24 +22,23 @@ linear_schedules = ddpm_schedules(betas[0], betas[1], T)
 cosine_schedules = ddpm_cosine_schedules(T, s=0.008)
 
 # Plotting
-fig, ax = plt.subplots(1, 2, figsize=(12, 5))
+fig, ax = plt.subplots(1, 2, figsize=(10, 8))
 
 # Linear Beta_t and Cosine Beta_t plot
-ax[0].plot(linear_schedules["beta_t"], label="Linear beta_t")
-ax[0].plot(cosine_schedules["beta_t"], label="Cosine beta_t")
-ax[0].set_title("Beta Schedule Comparison")
-ax[0].set_xlabel("Timestep")
-ax[0].set_ylabel("Beta Value")
+ax[0].plot(linear_schedules["beta_t"], label="Linear schedule")
+ax[0].plot(cosine_schedules["beta_t"], label="Cosine schedule")
+ax[0].set_xlabel("Diffusion Step t", fontsize=11)
+ax[0].set_ylabel(r"$\beta_{t}$", fontsize=14)
 ax[0].legend()
 
 # Linear Alpha_t and Cosine Alpha_t plot
-ax[1].plot(linear_schedules["alpha_t"], label="Linear alpha_t")
-ax[1].plot(cosine_schedules["alpha_t"], label="Cosine alpha_t")
-ax[1].set_title("Alpha Schedule Comparison")
-ax[1].set_xlabel("Timestep")
-ax[1].set_ylabel("Alpha Value")
+ax[1].plot(linear_schedules["alpha_t"], label="Linear schedule")
+ax[1].plot(cosine_schedules["alpha_t"], label="Cosine schedule")
+ax[1].set_xlabel("Diffusion Step t", fontsize=11)
+ax[1].set_ylabel(r"$\alpha_t$", fontsize=14)
 ax[1].legend()
 
+plt.savefig("../figures/noise_schedules.png", dpi=500, bbox_inches="tight")
 plt.show()
 # %% plot only alpha_t
 fig, ax = plt.subplots(1, 1, figsize=(6, 5))
@@ -50,12 +57,12 @@ tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.
 # Load the training dataset
 dataset = MNIST("./data", train=True, download=True, transform=tf)
 x, _ = dataset[0]
-x = x.unsqueeze(0)  # Add batch dimension
+x = x.unsqueeze(0)
 
 # Add Gaussian noise using the linear schedule
 x_noisy_linear = add_gaussian_noise(x, t=10, noise_schedule="linear")
 
-# display the original and noisy images
+# Display the original and noisy images
 fig, ax = plt.subplots(1, 2, figsize=(8, 4))
 
 ax[0].imshow(x.squeeze(0).squeeze(0), cmap="gray")
@@ -71,7 +78,7 @@ plt.show()
 # %%
 fig, axes = plt.subplots(2, 6, figsize=(10, 4))
 
-# Define specific noise levels (timesteps)
+# Define (timesteps)
 noise_levels = [0, 50, 100, 150, 200, 250]  # Example levels
 
 # Generate and plot the images with linear and cosine noise

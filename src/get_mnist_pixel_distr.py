@@ -1,11 +1,21 @@
+## @file get_MNIST_pixel_distr
+#  @brief This script is used to get the pixel distribution of zoomed images.
+#
+#  The script facilitates generating the starting point (latent image) for the sampling process.
+#  It addresses both NEAREST distribution strategy and BILINEAR set strategy.
+#  For NEAREST, the script saves a 4x4 pixel distribution, and for BILINEAR, a 5x5 image set is saved.
+#  These are saved as PyTorch tensors. We plot the pixel value distribution of the zoomed images.
+
 # %%
 from strat_funcs import single_alternating_zoom_batch
 import torch
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
-import random
 from tqdm import tqdm
 from torchvision.transforms import InterpolationMode
+import matplotlib.pyplot as plt
+import numpy as np
+
 
 # %%
 
@@ -15,7 +25,7 @@ mnist_dataset = datasets.MNIST(root="./data", train=True, download=True, transfo
 
 # Create a DataLoader
 dataloader = DataLoader(mnist_dataset, batch_size=128, shuffle=False)
-# %%
+# %% Save the BILINEAR zoomed-in set of images
 # Zoom level
 zoom_level = 23
 
@@ -31,29 +41,9 @@ for batch, _ in tqdm(dataloader):
 
 # Concatenate all batches into a single tensor
 all_zoomed_images = torch.cat(zoomed_images, dim=0)
-torch.save(all_zoomed_images, f"sample_sets/set_zoom_level_{zoom_level}.pt")
+# torch.save(all_zoomed_images, f"sample_sets/set_zoom_level_{zoom_level}.pt")
 
-
-# %%
-# Function to pick a random image from the zoomed dataset
-def pick_random_image(zoomed_dataset):
-    random_idx = random.randint(0, zoomed_dataset.size(0) - 1)
-    return zoomed_dataset[random_idx]
-
-
-# Pick a random zoomed image
-random_zoomed_image = pick_random_image(all_zoomed_images)
-
-print(random_zoomed_image.shape)
-# Show the random image (using matplotlib or any other library)
-import matplotlib.pyplot as plt
-
-plt.imshow(random_zoomed_image.squeeze(), cmap="gray")
-plt.title("Random Zoomed Image")
-plt.axis("off")
-plt.show()
-
-# %%
+# %% Get the distribution of the 4x4 pixel values for NEAREST interpolation.
 
 # Zoom level
 zoom_level = 24
@@ -75,10 +65,7 @@ all_zoomed_images = torch.cat(zoomed_images, dim=0)
 # %%
 torch.save(all_zoomed_images, f"sample_sets/set_zoom_level_{zoom_level}_NEAREST.pt")
 
-# %% get distribution of zoomed images
-import numpy as np
-import matplotlib.pyplot as plt
-
+# %% Get the distribution of pixel values
 zoomed_images = torch.load("sample_sets/set_zoom_level_24_NEAREST.pt")
 zoomed_images = zoomed_images.numpy()
 
@@ -109,13 +96,13 @@ distribution = torch.distributions.categorical.Categorical(probs=probs_tensor)
 # save the distribution
 torch.save(distribution, "sample_sets/distribution_zoom_level_24_NEAREST.pt")
 
-
 # Sample from the distribution
 samples = distribution.sample((10000,))
 
 sampled_pixel_values = bins[samples]
-plt.hist(sampled_pixel_values, bins=256)
-plt.title("Sampled Pixel Value Distribution of Zoomed Images")
-plt.xlabel("Pixel Value")
-plt.ylabel("Frequency")
+plt.hist(sampled_pixel_values, bins=50, density=True, color="black", alpha=0.5)
+# plt.title("Sampled Pixel Value Distribution of Zoomed Images")
+plt.xlabel("Central 4x4 Pixel Value")
+plt.ylabel("Density")
+plt.savefig("../figures/sample_pixel_distr.png", dpi=500, bbox_inches="tight")
 plt.show()

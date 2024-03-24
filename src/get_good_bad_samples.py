@@ -1,12 +1,19 @@
+## @file get_good_bad_samples
+#  @brief Sample images from different DDPM models and save good and bad samples. These
+#  are saved as PyTorch tensors.
+#
+#  This script loads trained DDPM models with different settings and generates sample images.
+#  We continually sample until we have good and bad sets for each model.
+
 # %%
 import torch
 from torch import nn
-from torchvision.utils import save_image, make_grid
+from torchvision.utils import make_grid
 import matplotlib.pyplot as plt
 import torch
-from nn_Gaussian import DDPM, CNN
-from nn_zoom_4x4_distr import DDPM_zoom_4x4_distr
-from nn_zoom_5x5_set import DDPM_zoom_5x5_set
+from nn_ddpm import DDPM, CNN
+from nn_zoom_nearest import DDPM_zoom_4x4_distr
+from nn_zoom_bilinear import DDPM_zoom_5x5_set
 
 n_hidden = (16, 32, 32, 16)
 betas = (1e-4, 0.02)
@@ -52,7 +59,7 @@ zoom_4x4_bad_samples = []
 # %%
 sample = []
 with torch.no_grad():
-    sampled_image = ddpm_zoom_5x5_set.sample(1, device=device)
+    sampled_image = ddpm_zoom_4x4_distr.sample(1, device=device)
     sample.append(sampled_image)
 
 
@@ -62,8 +69,6 @@ all_samples = torch.cat(sample, dim=0)
 # Create a grid of images
 grid = make_grid(all_samples, nrow=4)
 
-# Convert grid to a format suitable for showing with matplotlib
-# Permute the axes from (C, H, W) to (H, W, C) and normalize
 grid = grid.permute(1, 2, 0).cpu().numpy()
 grid = (grid - grid.min()) / (grid.max() - grid.min())
 
@@ -81,11 +86,5 @@ zoom_4x4_bad_samples.append(sample)
 
 # %%
 # Save good and bad samples as tensors
-torch.save(zoom_4x4_good_samples, "zoom_5x5_good_samples.pt")
-torch.save(zoom_4x4_bad_samples, "zoom_5x5_samples.pt")
-
-
-# %%
-
-
-# %%
+torch.save(zoom_4x4_good_samples, "zoom_4x4_good_samples.pt")
+torch.save(zoom_4x4_bad_samples, "zoom_4x4_samples.pt")

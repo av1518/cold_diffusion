@@ -1,9 +1,17 @@
+## @file plot_reverse_process
+#  This script plots the visualization and evaluation of the zoom models to
+#  the MNIST data. First we load the zoom in model and plot the CNN performance
+#  for various levels of zooms (degradation levels). We do this for both NEAREST
+#  and BILINEAR interpolation modes. We then visualize the sample progression from
+#  generated (fully degraded) image to the final reconstructed image (sample).
+#
+
 # %%
 import torch
 from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
-from nn_zoom_4x4_distr import DDPM_zoom_4x4_distr
-from nn_Gaussian import CNN
+from nn_zoom_nearest import DDPM_zoom_4x4_distr
+from nn_ddpm import CNN
 from strat_funcs import single_alternating_zoom
 from torch import nn
 from torchvision.transforms import InterpolationMode

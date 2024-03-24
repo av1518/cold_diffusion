@@ -13,9 +13,8 @@ import wandb
 
 
 import json
-from datetime import datetime
-from nn_Gaussian import CNN
-from nn_zoom_4x4_distr import DDPM_zoom_4x4_distr
+from nn_ddpm import CNN
+from nn_zoom_bilinear import DDPM_zoom_5x5_set
 
 # %%
 
@@ -23,7 +22,7 @@ from nn_zoom_4x4_distr import DDPM_zoom_4x4_distr
 
 learning_rate = 2e-4
 batch_size = 128
-n_T = 24
+n_T = 23
 
 
 tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])
@@ -43,7 +42,7 @@ test_dataloader = DataLoader(
 gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=(16, 32, 32, 16), act=nn.GELU)
 # For testing: (16, 32, 32, 16)
 # For more capacity (for example): (64, 128, 256, 128, 64)
-ddpm = DDPM_zoom_4x4_distr(gt=gt, n_T=n_T, criterion=nn.MSELoss())
+ddpm = DDPM_zoom_5x5_set(gt=gt, n_T=n_T, criterion=nn.MSELoss())
 optim = torch.optim.Adam(ddpm.parameters(), lr=learning_rate)
 
 accelerator = Accelerator()
@@ -122,17 +121,15 @@ for i in range(n_epoch):
         grid = make_grid(xh, nrow=4)
 
         # Save samples to `./contents` directory
-        save_image(grid, f"./contents_custom/alt_ddpm_NEAREST_4x4_distr_{i:04d}.png")
+        save_image(grid, f"./contents_custom/alt_ddpm_BI_5x5_set_{i:04d}.png")
 
         # save model every 10 epochs
         if i % 10 == 0:
             torch.save(
-                ddpm.state_dict(), f"../saved_models/alt_ddpm_NEAREST_4x4_distr_{i}.pth"
+                ddpm.state_dict(), f"../saved_models/ddpm_alt_BI_5x5_set_{i}.pth"
             )
 
-torch.save(
-    ddpm.state_dict(), f"../saved_models/alt_ddpm_NEAREST_4x4_distr_{n_epoch}.pth"
-)
+torch.save(ddpm.state_dict(), f"../saved_models/ddpm_alt_BI_5x5_set_{n_epoch}.pth")
 
 wandb.finish()
 # %%
@@ -143,7 +140,7 @@ plt.xlabel("Epoch")
 plt.ylabel("Average Loss")
 plt.title("DDPM Training Loss Curve")
 plt.legend()
-plt.savefig("./contents_custom/alt_ddpm_NEAREST_4x4_distr_.png")
+plt.savefig("./contents_custom/ddpm_loss_curve_alt_BI.png")
 plt.show()
 
 # %%
@@ -156,7 +153,7 @@ def save_metrics_to_json(filename, data):
 
 # save the mterics with a name based on learning rate
 
-metrics_filename = f"../saved_models/metrics_alt_ddpm_NEAREST_4x4_distr_.json"
+metrics_filename = f"../saved_models/metrics_ddpm_alt_BI_5x5_set.json"
 
 
 metrics_data = {
