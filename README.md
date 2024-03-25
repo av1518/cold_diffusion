@@ -3,7 +3,7 @@
 
 
 ### Description
-We develop Cold Zoom Diffusion: a deterministic way of training a diffusion model to produce MNIST digits by continually zooming into the image and extrapolating as our degradation strategy. We also train a standard Denoising Diffusion Probabilistic Model with linear and cosine schedules, and compare the sampling perfomance between the two. 
+We develop Cold Zoom Diffusion: a deterministic way of training a diffusion model to produce MNIST digits by continually zooming into the image and extrapolating as our degradation strategy. We also train a standard Denoising Diffusion Probabilistic Model with linear and cosine schedules, and compare the sampling perfomance between the two.
 
 
 
@@ -13,7 +13,7 @@ Dependencies required to run the project are listed in the `environment.yml` fil
 conda env create -f environment.yml
 ```
 
-Once the environment is created, activate it using: 
+Once the environment is created, activate it using:
 
 ```bash
 conda activate m2
@@ -24,9 +24,9 @@ All scripts have a description of their usage at the top. They are broken into t
 
 
 
-| Scipt                       | Usage                        
+| Scipt                       | Usage
 |----------------------------|---------------------------------|
-| `train_ddpm.py`, <br> `train_zoom_bilinear.py`, <br> `train_zoom_nearest.py`                      | Training scripts for DDPM, Cold Zoom Diffusion with  bilinear and nearest interpolation | 
+| `train_ddpm.py`, <br> `train_zoom_bilinear.py`, <br> `train_zoom_nearest.py`                      | Training scripts for DDPM, Cold Zoom Diffusion with  bilinear and nearest interpolation |
 | `plot_fid_and_samples.py
 
 All the code was ran on a CPU: Ryzen 9, 16gb of RAM, GPU: NVIDIA RTX 3060
@@ -57,5 +57,4 @@ Contributions are welcome. Please open an issue to discuss significant changes a
 This project is open-sourced under the [MIT](https://choosealicense.com/licenses/mit/) License.
 
 ## ChatGPT usage:
-ChatGPT 3.5 was used to: 
-
+ChatGPT 3.5 was used to:

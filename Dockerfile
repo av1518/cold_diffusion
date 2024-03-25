@@ -10,6 +10,3 @@ RUN conda env create -f environment.yml
 RUN echo "conda activate m2" >> ~/.bashrc
 
 SHELL ["conda", "run", "-n", "m2", "/bin/bash", "-c"]
-
-
-
