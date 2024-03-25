@@ -89,7 +89,7 @@ n_hidden = (16, 32, 32, 16)
 
 
 num_images = 5  # Number of images to process
-zoom_levels = [5, 10, 15, 20, 24]  # Different levels of zoom
+zoom_levels = [24, 24, 24, 24, 24]  # Different levels of zoom
 
 gt_distr = CNN(
     in_channels=1, expected_shape=(28, 28), n_hidden=(16, 32, 32, 16), act=nn.GELU
@@ -140,7 +140,7 @@ display_all_images(
     original_titles,
     zoom_titles,
     recon_titles,
-    num=4,
+    num=24,
 )
 # %%
 # Parameters

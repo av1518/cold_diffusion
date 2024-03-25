@@ -252,28 +252,6 @@ def generate_4x4_z_T(batch_size):
 
 # # %%
 # %%
-# dataset = MNIST("./data", train=True, download=True, transform=transforms.ToTensor())
-# img, _ = dataset[2]  # Example image
-
-
-# # Plotting
-# fig, axes = plt.subplots(1, 6, figsize=(15, 5))  # Change 6 to see more steps
-# axes[0].imshow(img.squeeze(), cmap="gray")
-# axes[0].set_title("Original")
-# axes[0].axis("off")
-
-# # # Apply function and plot for various steps
-# steps_to_test = [23, 24, 25, 26, 27]  # Modify as needed to test different steps
-# for i, step in enumerate(steps_to_test):
-#     cropped_img = single_alternating_zoom(
-#         img, step, interpolation=InterpolationMode.BILINEAR
-#     )
-#     axes[i + 1].imshow(cropped_img.squeeze(), cmap="gray")
-#     axes[i + 1].set_title(f"Step {step}")
-#     axes[i + 1].axis("off")
-
-# plt.show()
-# %%
 
 # # %%
 # """
