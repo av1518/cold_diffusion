@@ -1,10 +1,13 @@
-## @file ddpm_noise_schedules
-#  @brief Plots linear and cosine noise schedules in DDPM using MNIST image.
+## @file plot_schedules_progression
+#  @brief Plots linear and cosine noise schedules, plot steps in the forward diffusion
+#  process for both DDPM strategies and zoom-in degradation strategies.
+#
 #
 #  This script generates linear and cosine noise schedules, then applies them to an
 #  MNIST image for visualization. It compares original and noisy images, and showcases
 #  the noise impact at different timesteps for both schedules. We also plot the noise
-#  levels for all time steps.
+#  levels for all time steps. Finally, we demonstrate the zoom-in degradation strategy
+#  forward diffusion process for both nearest and bilinear interpolation methods.
 
 
 # %%
@@ -12,7 +15,9 @@ import matplotlib.pyplot as plt
 from utils import ddpm_schedules, ddpm_cosine_schedules, add_gaussian_noise
 from torchvision.datasets import MNIST
 from torchvision import transforms
+from strat_funcs import single_alternating_zoom, InterpolationMode
 
+# %%
 # Example parameters
 betas = (1e-4, 0.02)
 T = 1000
@@ -97,4 +102,44 @@ for i, level in enumerate(noise_levels):
 
 plt.tight_layout()
 plt.savefig("../figures/noise_progression.png", dpi=300, bbox_inches="tight")
+plt.show()
+# %% Zoom-in Degradation strategy example
+img, _ = dataset[0]  # Example image
+
+fig, axes = plt.subplots(1, 6, figsize=(15, 5))
+axes[0].imshow(img.squeeze(), cmap="gray")
+axes[0].set_title("Original")
+axes[0].axis("off")
+
+
+# Nearest interpolation zoom
+steps_to_test = [5, 10, 15, 20, 24]
+for i, step in enumerate(steps_to_test):
+    cropped_img = single_alternating_zoom(
+        img, step, interpolation=InterpolationMode.NEAREST
+    )
+    axes[i + 1].imshow(cropped_img.squeeze(), cmap="gray")
+    axes[i + 1].set_title(f"Step {step}")
+    axes[i + 1].axis("off")
+
+plt.savefig("../figures/zoom_NEAREST_steps.png", dpi=300, bbox_inches="tight")
+plt.show()
+
+# Plotting
+fig, axes = plt.subplots(1, 6, figsize=(15, 5))
+axes[0].imshow(img.squeeze(), cmap="gray")
+axes[0].set_title("Original")
+axes[0].axis("off")
+
+# Bilinear interpolation zoom
+steps_to_test = [5, 10, 15, 20, 24]
+for i, step in enumerate(steps_to_test):
+    cropped_img = single_alternating_zoom(
+        img, step, interpolation=InterpolationMode.BILINEAR
+    )
+    axes[i + 1].imshow(cropped_img.squeeze(), cmap="gray")
+    axes[i + 1].set_title(f"Step {step}")
+    axes[i + 1].axis("off")
+
+plt.savefig("../figures/zoom_BILINEAR_steps.png", dpi=300, bbox_inches="tight")
 plt.show()
