@@ -22,7 +22,7 @@ linear_schedules = ddpm_schedules(betas[0], betas[1], T)
 cosine_schedules = ddpm_cosine_schedules(T, s=0.008)
 
 # Plotting
-fig, ax = plt.subplots(1, 2, figsize=(10, 8))
+fig, ax = plt.subplots(1, 2, figsize=(10, 6))
 
 # Linear Beta_t and Cosine Beta_t plot
 ax[0].plot(linear_schedules["beta_t"], label="Linear schedule")

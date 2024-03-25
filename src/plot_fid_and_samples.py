@@ -36,11 +36,10 @@ linear_epochs, linear_scores = load_fid_scores(linear_json_file_path)
 
 # Plotting
 plt.figure(figsize=(8, 6))
-plt.plot(cosine_epochs, cosine_scores, marker="o", label="Cosine Schedule")
 plt.plot(linear_epochs, linear_scores, marker="o", label="Linear Schedule")
+plt.plot(cosine_epochs, cosine_scores, marker="o", label="Cosine Schedule")
 plt.xlabel("Epoch", fontsize=12)
 plt.ylabel("FID", fontsize=12)
-plt.grid(True)
 plt.legend()
 plt.savefig("../figures/fid_linear_cosine_comparison.png", dpi=300, bbox_inches="tight")
 plt.show()
@@ -138,7 +137,9 @@ def plot_samples(sample_list, title):
     samples_tensor_cpu = samples_tensor.cpu()
 
     # Create a grid of images
-    grid = make_grid(samples_tensor_cpu, nrow=3, normalize=True)
+    grid = make_grid(
+        samples_tensor_cpu, nrow=3, value_range=(-0.5, 0.5), normalize=True
+    )
 
     # Plot
     plt.figure(figsize=(10, 10))
@@ -158,3 +159,31 @@ plot_samples(zoom_5x5_good, "Zoom Bilinear Set Good Samples")
 plot_samples(zoom_5x5_bad, "Zoom Bilinear Set Bad Samples")
 plot_samples(zoom_4x4_good, "Zoom Nearest Distribution Good Samples")
 plot_samples(zoom_4x4_bad, "Zoom Nearest Distribution Samples")
+
+# %% Plot the loss curves
+
+linear_loss_path = "../metrics/losses_ddpm_linear.json"
+cosine_loss_path = "../metrics/losses_ddpm_cosine.json"
+
+with open(linear_loss_path, "r") as file:
+    linear_loss = json.load(file)
+with open(cosine_loss_path, "r") as file:
+    cosine_loss = json.load(file)
+
+fig, axs = plt.subplots(1, 2, figsize=(10, 6))
+
+axs[0].plot(linear_loss["epoch_avg_losses"], label="Linear Schedule Train Loss")
+axs[0].plot(cosine_loss["epoch_avg_losses"], label="Cosine Schedule Train Loss")
+axs[0].set_xlabel("Epoch", fontsize=12)
+axs[0].set_ylabel(r"$\overline{L}_{MSE}$", fontsize=12)
+axs[0].legend()
+
+axs[1].plot(linear_loss["test_avg_losses"], label="Linear Schedule Test Loss")
+axs[1].plot(cosine_loss["test_avg_losses"], label="Cosine Schedule Test Loss")
+axs[1].set_xlabel("Epoch", fontsize=12)
+axs[1].set_ylabel(r"$L_{MSE}$", fontsize=12)
+axs[1].legend()
+
+plt.savefig("../figures/loss_curves.png", dpi=300, bbox_inches="tight")
+
+plt.show()
