@@ -1,4 +1,4 @@
-## @file fid_scores.py
+## @file get_fid_scores.py
 #  @brief This script is used for evaluating the performance of our models on the MNIST dataset.
 #
 #  It loads the MNIST dataset,initializes the models, and calculates the Fréchet Inception Distance (FID) score for the models.

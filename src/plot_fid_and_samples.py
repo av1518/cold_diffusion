@@ -82,21 +82,22 @@ plt.legend()
 
 # %% Plot everything together
 plt.figure(figsize=(8, 6))
-plt.plot(cosine_epochs, cosine_scores, marker="o", label="Cosine Schedule")
-plt.plot(linear_epochs, linear_scores, marker="o", label="Linear Schedule")
-plt.plot(
-    zoom_5x5_epochs, zoom_5x5_scores, marker="o", label="Bilinear Zoom Set Sampling"
-)
+plt.plot(linear_epochs, linear_scores, marker="o", label="DDPM Linear Schedule")
+plt.plot(cosine_epochs, cosine_scores, marker="o", label="DDPM Cosine Schedule")
+# plt.plot(
+#     zoom_5x5_epochs, zoom_5x5_scores, marker="o", label="Bilinear Zoom Set Sampling"
+# )
 plt.plot(
     zoom_distr_epochs,
     zoom_distr_scores,
     marker="o",
-    label="Nearest Interpolation Zoom Sampling",
+    label="Cold Zoom Diffusion",
+    color="green",
 )
 plt.xlabel("Epoch", fontsize=12)
 plt.ylabel("FID", fontsize=12)
-plt.grid(True)
 plt.legend()
+plt.savefig("../figures/fid_all_models.png", dpi=300, bbox_inches="tight")
 plt.show()
 
 # %% Plot good and bad samples
@@ -170,7 +171,7 @@ with open(linear_loss_path, "r") as file:
 with open(cosine_loss_path, "r") as file:
     cosine_loss = json.load(file)
 
-fig, axs = plt.subplots(1, 2, figsize=(10, 6))
+fig, axs = plt.subplots(1, 2, figsize=(11, 6))
 
 axs[0].plot(linear_loss["epoch_avg_losses"], label="Linear Schedule Train Loss")
 axs[0].plot(cosine_loss["epoch_avg_losses"], label="Cosine Schedule Train Loss")
@@ -181,9 +182,48 @@ axs[0].legend()
 axs[1].plot(linear_loss["test_avg_losses"], label="Linear Schedule Test Loss")
 axs[1].plot(cosine_loss["test_avg_losses"], label="Cosine Schedule Test Loss")
 axs[1].set_xlabel("Epoch", fontsize=12)
-axs[1].set_ylabel(r"$L_{MSE}$", fontsize=12)
+axs[1].set_ylabel(r"$\overline{L}_{MSE}$", fontsize=12)
 axs[1].legend()
 
 plt.savefig("../figures/loss_curves.png", dpi=300, bbox_inches="tight")
 
+plt.show()
+
+# %%
+
+nearest_loss_path = "../metrics/losses_zoom_NEAREST.json"
+bilinear_loss_path = "../metrics/losses_zoom_BILINEAR.json"
+
+with open(nearest_loss_path, "r") as file:
+    nearest_loss = json.load(file)
+with open(bilinear_loss_path, "r") as file:
+    bilinear_loss = json.load(file)
+
+fig, axs = plt.subplots(1, 2, figsize=(10, 6))
+
+axs[0].plot(bilinear_loss["epoch_avg_losses"], label="Bilinear Set Train Loss")
+axs[0].plot(nearest_loss["epoch_avg_losses"], label="Nearest Interpolation Train Loss")
+axs[0].set_xlabel("Epoch", fontsize=12)
+axs[0].set_ylabel(r"$\overline{L}_{MSE}$", fontsize=12)
+axs[0].legend()
+
+axs[1].plot(bilinear_loss["test_avg_losses"], label="Bilinear Set Test Loss")
+axs[1].plot(nearest_loss["test_avg_losses"], label="Nearest Interpolation Test Loss")
+axs[1].set_xlabel("Epoch", fontsize=12)
+axs[1].set_ylabel(r"$L_{MSE}$", fontsize=12)
+axs[1].legend()
+
+plt.savefig("../figures/loss_curves_zoom.png", dpi=300, bbox_inches="tight")
+
+plt.show()
+
+# %% Plot nearest train and test loss on the same plot
+plt.figure(figsize=(8, 6))
+plt.plot(nearest_loss["test_avg_losses"], label="Cold Zoom Test Loss", color="black")
+plt.plot(nearest_loss["epoch_avg_losses"], label="Cold Zoom Train Loss", color="green")
+
+plt.xlabel("Epoch", fontsize=12)
+plt.ylabel(r"$\overline{L}_{MSE}$", fontsize=12)
+plt.legend()
+plt.savefig("../figures/nearest_loss.png", dpi=300, bbox_inches="tight")
 plt.show()
