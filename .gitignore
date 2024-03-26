@@ -1,13 +1,19 @@
-/src/contents
+
 /data
 *.pyc
 *.gz
 *ubyte
 
-/saved_models
-/src/contents_custom
+*.png
+
+/saved_models/*
 /src/wandb
-/src/contents_custom_no_regularisation
 /wandb
-/figures
 /archive
+/report
+/papers
+
+!/saved_models/alt_ddpm_NEAREST_4x4_distr_100.pth
+!/saved_models/ddpm_alt_BI_5x5_set_100.pth
+!/saved_models/ddpm_gaussian_cosine_100.pth
+!/saved_models/ddpm_gaussian_linear_100.pth

@@ -18,7 +18,6 @@ from torchvision import transforms
 from strat_funcs import single_alternating_zoom, InterpolationMode
 
 # %%
-# Example parameters
 betas = (1e-4, 0.02)
 T = 1000
 
@@ -83,10 +82,10 @@ plt.show()
 # %%
 fig, axes = plt.subplots(2, 6, figsize=(10, 4))
 
-# Define (timesteps)
-noise_levels = [0, 50, 100, 150, 200, 250]  # Example levels
+# set (timesteps)
+noise_levels = [0, 50, 100, 150, 200, 250]
 
-# Generate and plot the images with linear and cosine noise
+# plot the images with linear and cosine noise
 for i, level in enumerate(noise_levels):
     # Linear noise
     x_noisy_linear = add_gaussian_noise(x, t=level, noise_schedule="linear")
@@ -125,7 +124,6 @@ for i, step in enumerate(steps_to_test):
 plt.savefig("../figures/zoom_NEAREST_steps.png", dpi=300, bbox_inches="tight")
 plt.show()
 
-# Plotting
 fig, axes = plt.subplots(1, 6, figsize=(15, 5))
 axes[0].imshow(img.squeeze(), cmap="gray")
 axes[0].set_title("Original")

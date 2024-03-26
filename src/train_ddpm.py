@@ -9,20 +9,19 @@ from torchvision import transforms
 from torchvision.datasets import MNIST
 from torchvision.utils import save_image, make_grid
 import matplotlib.pyplot as plt
-
 import json
 from datetime import datetime
 from nn_ddpm import DDPM, CNN
 
 
 # %%
-
 # parameters
 n_hidden = (16, 32, 32, 16)
 betas = (1e-4, 0.02)
+noise_scheduler = "linear"
+n_epoch = 100
 
 tf = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (1.0,))])
-# normalise with mean 0.5 and std 1.0
 
 # Load the training dataset
 train_dataset = MNIST("./data", train=True, download=True, transform=tf)
@@ -37,9 +36,7 @@ test_dataloader = DataLoader(
 )
 
 gt = CNN(in_channels=1, expected_shape=(28, 28), n_hidden=n_hidden, act=nn.GELU)
-# For testing: (16, 32, 32, 16)
-# For more capacity (for example): (64, 128, 256, 128, 64)
-ddpm = DDPM(gt=gt, betas=betas, n_T=1000, noise_scheduler="linear")
+ddpm = DDPM(gt=gt, betas=betas, n_T=1000, noise_scheduler=noise_scheduler)
 optim = torch.optim.Adam(ddpm.parameters(), lr=2e-4)
 
 accelerator = Accelerator()
@@ -48,6 +45,7 @@ accelerator = Accelerator()
 # which lets HuggingFace's Accelerate handle the device placement and gradient accumulation.
 ddpm, optim, train_dataloader = accelerator.prepare(ddpm, optim, train_dataloader)
 print("Device:", accelerator.device)
+
 # make sure this works
 for x, _ in train_dataloader:
     print(x.shape, x.device)
@@ -58,10 +56,8 @@ with torch.no_grad():
     print("Passed initial test")
 
 # %% Training
-
-n_epoch = 100
 moving_avg_loss = []
-epoch_avg_losses = []  # List to store average loss per epoch
+epoch_avg_losses = []
 test_avg_losses = []
 
 for i in range(n_epoch):
@@ -73,7 +69,6 @@ for i in range(n_epoch):
         optim.zero_grad()
         loss = ddpm(x)
         accelerator.backward(loss)
-        # ^Technically should be `accelerator.backward(loss)` but not necessary for local training
         moving_avg_loss.append(loss.item())
         avg_loss = np.average(
             moving_avg_loss[max(len(moving_avg_loss) - 100, 0) :]
@@ -99,12 +94,8 @@ for i in range(n_epoch):
         test_avg_losses.append(test_avg_loss)
 
         xh = ddpm.sample(n_sample=16, size=(1, 28, 28), device=accelerator.device)
-        # Can get device explicitly with `accelerator.device`
-        # ^ make 16 samples, The size of each sample to generate (excluding the batch dimension).
-        # This should match the expected input size of the model.
         grid = make_grid(xh, nrow=4)
 
-        # Save samples to `./contents` directory
         save_image(grid, f"./contents/ddpm_gaussian_linear_sample_{i:04d}.png")
 
         if i % 5 == 0:
