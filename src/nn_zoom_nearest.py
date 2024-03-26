@@ -2,7 +2,7 @@ from typing import Dict, Tuple
 import numpy as np
 import torch
 import torch.nn as nn
-from strat_funcs import single_alternating_zoom_batch, generate_4x4_z_T
+from strat_funcs import single_alternating_zoom_batch, generate_seed_latent
 from torchvision.transforms import InterpolationMode
 
 sample_set = torch.load("sample_sets/set_zoom_level_23.pt")
@@ -43,7 +43,7 @@ class DDPM_zoom_4x4_distr(nn.Module):
     def sample(self, n_samples: int, device, keep_steps=False) -> torch.Tensor:
         steps = []
 
-        z_T = generate_4x4_z_T(n_samples)
+        z_T = generate_seed_latent(n_samples)
         # shape of z_T is [num_samples, 1, 28, 28]
         z_T = z_T.to(device)
 

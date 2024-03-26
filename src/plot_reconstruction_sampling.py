@@ -1,10 +1,9 @@
-## @file plot_reverse_process
-#  This script plots the visualization and evaluation of the zoom models to
-#  the MNIST data. First we load the zoom in model and plot the CNN performance
-#  for various levels of zooms (degradation levels). We do this for both NEAREST
-#  and BILINEAR interpolation modes. We then visualize the sample progression from
-#  generated (fully degraded) image to the final reconstructed image (sample).
-#
+## @file plot_reconstruction_sampling.py
+#  This script plots the reconstuctor prediction for different levels of zoom-in.
+#  It loads the trained models, processes the images, and visualizes the original,
+#  zoomed-in, and reconstructed images. It then plots the samples through the
+#  reconstruction process for sampling, starting from generated seed latents.
+
 
 # %%
 import torch
@@ -79,11 +78,8 @@ def display_all_images(
 
 # %%
 # Parameters
-
 epoch = 100
-
 n_T_4x4 = 24
-
 model_path = f"../saved_models/alt_ddpm_NEAREST_4x4_distr_{epoch}.pth"
 n_hidden = (16, 32, 32, 16)
 
@@ -195,14 +191,9 @@ display_all_images(
 )
 
 # %%
-
 epoch = 100
-
-
 model_path = f"../saved_models/alt_ddpm_NEAREST_4x4_distr_{epoch}.pth"
 n_hidden = (16, 32, 32, 16)
-
-
 gt_distr = CNN(
     in_channels=1, expected_shape=(28, 28), n_hidden=(16, 32, 32, 16), act=nn.GELU
 )
@@ -212,25 +203,16 @@ with torch.no_grad():
     steps = model.sample(n_samples=5, device="cpu", keep_steps=True)
 
 
-# Assuming 'tensor_list' is your list of tensors
 tensor_list = steps
-
 # Select every 5th tensor starting from the first
 selected_tensors = [tensor_list[i] for i in range(0, 25, 3)]
-
-# Concatenate these tensors along the batch dimension
+# concatenate these tensors along the batch dimension
 concatenated_tensors = torch.cat(selected_tensors, dim=0)
-
-# Add 0.5 to remove the normalisation
+# add 0.5 to remove the normalisation
 normalized_tensors = concatenated_tensors + 0.5
-
-# Use make_grid to create a grid of these images
 grid = torchvision.utils.make_grid(normalized_tensors, nrow=5)
-
-# Convert the grid to a numpy array for displaying
 grid_np = grid.numpy().transpose((1, 2, 0))
 
-# Display the grid
 plt.figure(figsize=(10, 10))
 plt.imshow(grid_np, cmap="gray")
 plt.axis("off")

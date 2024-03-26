@@ -19,18 +19,41 @@ Once the environment is created, activate it using:
 conda activate m2
 ```
 
-### File Contents
+### Script Contents
 All scripts have a description of their usage at the top. They are broken into the following sections:
 
 
 
-| Scipt                       | Usage                        
-|----------------------------|---------------------------------|
-| `train_ddpm.py`, <br> `train_zoom_bilinear.py`, <br> `train_zoom_nearest.py`                      | Training scripts for DDPM, Cold Zoom Diffusion with  bilinear and nearest interpolation | 
-| `plot_fid_and_samples.py
+#### Training Scripts
+| Script                    | Usage                                                                    |
+|---------------------------|--------------------------------------------------------------------------|
+| `train_ddpm.py`           | Train Denoising Diffusion Probabilistic Models (DDPM)      |
+| `train_zoom_bilinear.py`  | Train Cold Zoom Diffusion using bilinear interpolation |
+| `train_zoom_nearest.py`   | Train Cold Zoom Diffusion nearest neighbor interpolation |
 
-All the code was ran on a CPU: Ryzen 9, 16gb of RAM, GPU: NVIDIA RTX 3060
+#### Evaluation & Figures Scripts
+| Script                    | Usage                                                                    |
+|---------------------------|--------------------------------------------------------------------------|
+| `get_fid_scores.py`       | Calculate FID scores for model evaluation                      |
+| `get_good_bad_samples.py` | Separate good and bad samples from model outputs               |
+| `get_minist_pixel_dist.py`| Analyze pixel distribution in the MNIST dataset                 |
+| `plot_fid_samples_loss.py` | Load and plot FID scores, good and bad generated samples, and loss curves   |
+| `plot_reconstruction_sampling.py` | Plot reconstructor (reverse process) network predictions, and various steps during reverse process (sampling)          |
+| `plot_schedules_progression.py` | Plots linear and cosine noise schedules, plot steps in the forward diffusion process for both DDPM strategies and zoom-in degradation strategies.        |
 
+#### Utility & Network Scripts
+| Script                    | Usage                                                                    |
+|---------------------------|--------------------------------------------------------------------------|
+| `nn_ddpm.py`              | Neural network  for DDPM                                           |
+| `nn_zoom_bilinear.py`     | Neural network  for Cold Zoom Diffusion with bilinear interpolation    |
+| `nn_zoom_nearest.py`      | Neural network  for Cold Zoom Diffusion with nearest neighbor interpolation |
+| `strat_funcs.py`          | Functions used in Cold Diffusion degradation strategy & evaluation                     |
+| `utils.py`                | Utility functions for general purposes in the project                    |
+
+
+
+- All the code was ran on a CPU: Ryzen 9, 16gb of RAM, GPU: NVIDIA RTX 3060
+- The FID score plots in `get_fid_scores.py` need every model parameters for 20 epochs. These were ommited from the git directory. These can be saved by running the corresponding training files first.
 
 
 ## Dockerfile Instructions
@@ -47,6 +70,8 @@ $ docker run --rm -ti m2
 ```
 
 This setup uses a virtual Ubuntu environment with Miniconda, installs the necessary packages and activates the environment. From here, simply follow the Usage section to use the solver.
+
+
 
 
 ### Contributing
