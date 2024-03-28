@@ -6,6 +6,9 @@
 We develop Cold Zoom Diffusion: a deterministic way of training a diffusion model to produce MNIST digits by continually zooming into the image and extrapolating as our degradation strategy. We also train a standard Denoising Diffusion Probabilistic Model with linear and cosine schedules, and compare the sampling perfomance between the two. 
 
 
+We include scripts for Bilinear Cold Zoom Diffusion, but these results are not discussed in the report. These are here for completeness.
+
+
 
 ### Installation
 Dependencies required to run the project are listed in the `environment.yml` file. To install the necessary Conda environment from these dependencies, run:
@@ -81,6 +84,23 @@ Contributions are welcome. Please open an issue to discuss significant changes a
 ### License
 This project is open-sourced under the [MIT](https://choosealicense.com/licenses/mit/) License.
 
-## ChatGPT usage:
-ChatGPT 3.5 was used to: 
+## Autogeneration tools:
+Co-pilot was used in the following way:
+- Autocompleting documentation for functions and for scripts
+- Sometimes we used the autocomplete feature for standard script routines (although these almost always need fixing and are acting as templates) such as:
+    - #plotting the data
+    - :Allowed to autocomplete the plotting script.
+- Understand error messages with "Explain this error" button next to the error message.
+- General questions such as:
+
+How can i change a function name and have it change throughout my workspace?  
+
+Answer: In Visual Studio Code, you can use the "Rename Symbol" feature to change a function name throughout your workspace. Here are the steps:
+
+Place your cursor on the function name you want to change.
+Right-click the function name, and select "Rename Symbol" from the context menu. Alternatively, you can use the shortcut F2.
+Enter the new function name and press Enter.
+VS Code will automatically find and update all occurrences of the function name in your workspace. This includes not only the function definition, but also all places where the function is called.
+
+Please note that this feature depends on the language support provided by the installed extensions. If you're working with a language that doesn't have good support, the "Rename Symbol" feature might not work
 
