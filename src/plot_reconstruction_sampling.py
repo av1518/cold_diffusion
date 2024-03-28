@@ -28,7 +28,7 @@ def display_images(images, titles):
         plt.imshow(img, cmap="gray")
         plt.title(title)
         plt.axis("off")
-    plt.show()
+    # plt.show()
 
 
 def display_all_images(
@@ -73,7 +73,8 @@ def display_all_images(
 
     plt.tight_layout()
     plt.savefig(f"../figures/CNN_performance_{num}", dpi=500, bbox_inches="tight")
-    plt.show()
+    print(f"Saved ../figures/CNN_performance_{num}.png")
+    # plt.show()
 
 
 # %%
@@ -221,5 +222,6 @@ plt.savefig(
     dpi=500,
     bbox_inches="tight",
 )
+print("Saved sample_progression_4x4_distr_every_3_NEAR_1.png")
 plt.show()
 # %%

@@ -127,8 +127,6 @@ zoom_4x4_bad = extract_samples(zoom_4x4_bad)
 def plot_samples(sample_list, title):
     # Stack the samples to create a single tensor
     samples_tensor = torch.stack(sample_list).unsqueeze(1)
-    print(samples_tensor.shape)
-
     # Move the tensor to CPU
     samples_tensor_cpu = samples_tensor.cpu()
 
@@ -142,6 +140,7 @@ def plot_samples(sample_list, title):
     plt.imshow(grid.permute(1, 2, 0))
     plt.axis("off")
     plt.savefig(f"../figures/{title}.png", dpi=500, bbox_inches="tight")
+    print(f"Saved {title}.png in figures directory")
     # plt.show()
 
 
@@ -180,6 +179,7 @@ axs[1].set_ylabel(r"$\overline{L}_{MSE}$", fontsize=12)
 axs[1].legend()
 
 plt.savefig("../figures/loss_curves.png", dpi=300, bbox_inches="tight")
+print("Saved loss_curves.png in figures directory")
 
 # plt.show()
 
@@ -208,6 +208,7 @@ axs[1].set_ylabel(r"$L_{MSE}$", fontsize=12)
 axs[1].legend()
 
 plt.savefig("../figures/loss_curves_zoom.png", dpi=300, bbox_inches="tight")
+print("Saved loss_curves_zoom.png in figures directory")
 
 # plt.show()
 
@@ -220,4 +221,5 @@ plt.xlabel("Epoch", fontsize=12)
 plt.ylabel(r"$\overline{L}_{MSE}$", fontsize=12)
 plt.legend()
 plt.savefig("../figures/nearest_loss.png", dpi=300, bbox_inches="tight")
+print("Saved nearest_loss.png in figures directory")
 # plt.show()

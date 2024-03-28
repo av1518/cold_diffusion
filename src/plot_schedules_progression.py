@@ -43,7 +43,8 @@ ax[1].set_ylabel(r"$\alpha_t$", fontsize=14)
 ax[1].legend()
 
 plt.savefig("../figures/noise_schedules.png", dpi=500, bbox_inches="tight")
-plt.show()
+print("Saved noise_schedules.png in figures directory")
+# plt.show()
 # %% plot only alpha_t
 fig, ax = plt.subplots(1, 1, figsize=(6, 5))
 ax.plot(linear_schedules["alpha_t"], label="Linear schedule")
@@ -52,7 +53,8 @@ ax.set_xlabel("Diffusion Step t", fontsize=11)
 ax.set_ylabel(r"$\alpha_t$", fontsize=14)
 ax.legend()
 plt.savefig("../figures/noise_schedule.png", dpi=300, bbox_inches="tight")
-plt.show()
+print("Saved noise_schedule.png in figures directory")
+# plt.show()
 
 # %% Add Gaussian noise to an MNIST image
 # Load an MNIST image
@@ -77,7 +79,7 @@ ax[1].imshow(x_noisy_linear.squeeze(0).squeeze(0), cmap="gray")
 ax[1].set_title("Noisy Image (Linear Schedule)")
 ax[1].axis("off")
 
-plt.show()
+# plt.show()
 
 # %%
 fig, axes = plt.subplots(2, 6, figsize=(10, 4))
@@ -101,7 +103,8 @@ for i, level in enumerate(noise_levels):
 
 plt.tight_layout()
 plt.savefig("../figures/noise_progression.png", dpi=300, bbox_inches="tight")
-plt.show()
+print("Saved noise_progression.png in figures directory")
+# plt.show()
 # %% Zoom-in Degradation strategy example
 img, _ = dataset[0]  # Example image
 
@@ -122,7 +125,8 @@ for i, step in enumerate(steps_to_test):
     axes[i + 1].axis("off")
 
 plt.savefig("../figures/zoom_NEAREST_steps.png", dpi=300, bbox_inches="tight")
-plt.show()
+print("Saved zoom_NEAREST_steps.png in figures directory")
+# plt.show()
 
 fig, axes = plt.subplots(1, 6, figsize=(15, 5))
 axes[0].imshow(img.squeeze(), cmap="gray")
@@ -140,4 +144,5 @@ for i, step in enumerate(steps_to_test):
     axes[i + 1].axis("off")
 
 plt.savefig("../figures/zoom_BILINEAR_steps.png", dpi=300, bbox_inches="tight")
-plt.show()
+print("Saved zoom_BILINEAR_steps.png in figures directory")
+# plt.show()

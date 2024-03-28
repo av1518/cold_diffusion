@@ -77,8 +77,6 @@ plt.imshow(grid, vmin=-0.5, vmax=0.5, cmap="gray")
 plt.axis("off")
 plt.show()
 
-print(len(zoom_4x4_good_samples))
-print(len(zoom_4x4_bad_samples))
 # %%
 zoom_4x4_good_samples.append(sample)
 # %%
@@ -86,5 +84,7 @@ zoom_4x4_bad_samples.append(sample)
 
 # %%
 # Save good and bad samples as tensors
-torch.save(zoom_4x4_good_samples, "zoom_4x4_good_samples.pt")
-torch.save(zoom_4x4_bad_samples, "zoom_4x4_samples.pt")
+torch.save(zoom_4x4_good_samples, "zoom_4x4_good_samples_new.pt")
+torch.save(zoom_4x4_bad_samples, "zoom_4x4_samples_new.pt")
+
+print("New Samples saved")

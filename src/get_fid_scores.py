@@ -40,6 +40,8 @@ fid_metrics = {}
 # FID Calculation and Saving Scores for each epoch
 for epoch in range(0, 110, 10):
     model_path = f"../saved_models/alt_ddpm_NEAREST_4x4_distr_{epoch}.pth"
+    print(f"Calculating FID score for epoch {epoch}")
+    print(f"Model path: {model_path}")
 
     # Load the model
     ddpm.load_state_dict(torch.load(model_path, map_location=device))
