@@ -1,6 +1,4 @@
 from src.strat_funcs import single_alternating_zoom
-
-
 import torch
 from torchvision.transforms import InterpolationMode
 
