@@ -38,7 +38,7 @@ plt.xlabel("Epoch", fontsize=12)
 plt.ylabel("FID", fontsize=12)
 plt.legend()
 plt.savefig("../figures/fid_linear_cosine_comparison.png", dpi=300, bbox_inches="tight")
-plt.show()
+# plt.show()
 # %%
 # Load and extract data for both files
 zoom_5x5_epochs, zoom_5x5_scores = load_fid_scores(zoom_5x5_set_path)
@@ -59,7 +59,7 @@ plt.xlabel("Epoch", fontsize=12)
 plt.ylabel("FID", fontsize=12)
 plt.grid(True)
 plt.legend()
-plt.show()
+# plt.show()
 
 # %% Plot linear vs Nearest Interpolation Zoom Sampling
 plt.figure(figsize=(8, 6))
@@ -93,7 +93,7 @@ plt.xlabel("Epoch", fontsize=12)
 plt.ylabel("FID", fontsize=12)
 plt.legend()
 plt.savefig("../figures/fid_all_models.png", dpi=300, bbox_inches="tight")
-plt.show()
+# plt.show()
 
 # %% Plot good and bad samples
 
@@ -140,10 +140,9 @@ def plot_samples(sample_list, title):
     # Plot
     plt.figure(figsize=(10, 10))
     plt.imshow(grid.permute(1, 2, 0))
-    plt.title(title)
     plt.axis("off")
     plt.savefig(f"../figures/{title}.png", dpi=500, bbox_inches="tight")
-    plt.show()
+    # plt.show()
 
 
 # %%
@@ -182,7 +181,7 @@ axs[1].legend()
 
 plt.savefig("../figures/loss_curves.png", dpi=300, bbox_inches="tight")
 
-plt.show()
+# plt.show()
 
 # %%
 
@@ -210,7 +209,7 @@ axs[1].legend()
 
 plt.savefig("../figures/loss_curves_zoom.png", dpi=300, bbox_inches="tight")
 
-plt.show()
+# plt.show()
 
 # %% Plot nearest train and test loss on the same plot
 plt.figure(figsize=(8, 6))
@@ -221,4 +220,4 @@ plt.xlabel("Epoch", fontsize=12)
 plt.ylabel(r"$\overline{L}_{MSE}$", fontsize=12)
 plt.legend()
 plt.savefig("../figures/nearest_loss.png", dpi=300, bbox_inches="tight")
-plt.show()
+# plt.show()
