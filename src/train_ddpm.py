@@ -10,7 +10,6 @@ from torchvision.datasets import MNIST
 from torchvision.utils import save_image, make_grid
 import matplotlib.pyplot as plt
 import json
-from datetime import datetime
 from nn_ddpm import DDPM, CNN
 
 
@@ -40,9 +39,6 @@ ddpm = DDPM(gt=gt, betas=betas, n_T=1000, noise_scheduler=noise_scheduler)
 optim = torch.optim.Adam(ddpm.parameters(), lr=2e-4)
 
 accelerator = Accelerator()
-
-# We wrap our model, optimizer, and dataloaders with `accelerator.prepare`,
-# which lets HuggingFace's Accelerate handle the device placement and gradient accumulation.
 ddpm, optim, train_dataloader = accelerator.prepare(ddpm, optim, train_dataloader)
 print("Device:", accelerator.device)
 
@@ -105,7 +101,7 @@ for i in range(n_epoch):
 
 torch.save(ddpm.state_dict(), f"../saved_models/ddpm_gaussian_linear_{n_epoch}.pth")
 
-# %%
+# %% Plot the loss curves
 # After training, plot and save the loss curve
 plt.plot(range(1, n_epoch + 1), epoch_avg_losses, label="Average Loss per Epoch")
 plt.plot(range(1, n_epoch + 1), test_avg_losses, label="Test Loss per Epoch")
@@ -116,21 +112,17 @@ plt.legend()
 plt.savefig("../figures/ddpm_gaussian_linear_loss_curve.png")
 plt.show()
 
+# %% Save metrics to JSON file
+
 
 def save_metrics_to_json(filename, data):
     with open(filename, "w") as f:
         json.dump(data, f, indent=4)
 
 
-# Save average loss per epoch to a JSON file with timestamp
-current_date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 metrics_filename = f"../metrics/ddpm_gaussian_linear.json"
 metrics_data = {
     "epoch_avg_losses": epoch_avg_losses,
     "test_avg_losses": test_avg_losses,
 }
 save_metrics_to_json(metrics_filename, metrics_data)
-
-
-# if __name__ == '__main__':
-#     main()

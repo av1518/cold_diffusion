@@ -17,9 +17,7 @@ from nn_ddpm import CNN
 from nn_zoom_bilinear import DDPM_zoom_5x5_set
 
 # %%
-
-# def main():
-
+# Parameters
 learning_rate = 2e-4
 batch_size = 128
 n_T = 23
@@ -47,8 +45,6 @@ optim = torch.optim.Adam(ddpm.parameters(), lr=learning_rate)
 
 accelerator = Accelerator()
 
-# We wrap our model, optimizer, and dataloaders with `accelerator.prepare`,
-# which lets HuggingFace's Accelerate handle the device placement and gradient accumulation.
 ddpm, optim, train_dataloader = accelerator.prepare(ddpm, optim, train_dataloader)
 print("Device:", accelerator.device)
 # make sure this works
@@ -87,7 +83,6 @@ for i in range(n_epoch):
         optim.zero_grad()
         loss = ddpm(x)
         accelerator.backward(loss)
-        # ^Technically should be `accelerator.backward(loss)` but not necessary for local training
         moving_avg_loss.append(loss.item())
         avg_loss = np.average(
             moving_avg_loss[max(len(moving_avg_loss) - 100, 0) :]
@@ -115,9 +110,6 @@ for i in range(n_epoch):
         wandb.log({"avg_test_loss": test_avg_loss})
 
         xh = ddpm.sample(n_samples=16, device=accelerator.device)
-        # Can get device explicitly with `accelerator.device`
-        # ^ make 16 samples, The size of each sample to generate (excluding the batch dimension).
-        # This should match the expected input size of the model.
         grid = make_grid(xh, nrow=4)
 
         # Save samples to `./contents` directory
@@ -132,7 +124,7 @@ for i in range(n_epoch):
 torch.save(ddpm.state_dict(), f"../saved_models/ddpm_alt_BI_5x5_set_{n_epoch}.pth")
 
 wandb.finish()
-# %%
+# %% Plot the loss curves
 # After training, plot and save the loss curve
 plt.plot(range(1, n_epoch + 1), epoch_avg_losses, label="Average Loss per Epoch")
 plt.plot(range(1, n_epoch + 1), test_avg_losses, label="Test Loss per Epoch")
@@ -143,15 +135,12 @@ plt.legend()
 plt.savefig("./contents_custom/ddpm_loss_curve_alt_BI.png")
 plt.show()
 
-# %%
 
-
+# %% Save metrics to JSON file
 def save_metrics_to_json(filename, data):
     with open(filename, "w") as f:
         json.dump(data, f, indent=4)
 
-
-# save the mterics with a name based on learning rate
 
 metrics_filename = f"../saved_models/metrics_ddpm_alt_BI_5x5_set.json"
 
@@ -161,7 +150,3 @@ metrics_data = {
     "test_avg_losses": test_avg_losses,
 }
 save_metrics_to_json(metrics_filename, metrics_data)
-
-
-# if __name__ == '__main__':
-#     main()
