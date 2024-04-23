@@ -13,7 +13,10 @@
 report/*
 !report/*.pdf
 
+/src/sample_sets/*.pt
+
 papers/*
+
 
 
 !/saved_models/alt_ddpm_NEAREST_4x4_distr_100.pth
