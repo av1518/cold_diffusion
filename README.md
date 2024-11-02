@@ -3,7 +3,17 @@
 
 
 ### Description
-We develop Cold Zoom Diffusion: a deterministic way of training a diffusion model to produce MNIST digits by continually zooming into the image and extrapolating as our degradation strategy. We also train a standard Denoising Diffusion Probabilistic Model with linear and cosine schedules, and compare the sampling perfomance between the two.
+We develop Cold Zoom Diffusion: a deterministic way of training a diffusion model to produce MNIST digits by continually zooming into the image and extrapolating as our degradation strategy. The Cold Zoom Diffusion model performs comparably to the linear DDPM model, despite its deterministic nature and smaller reconstructor network. However, it shows a bias towards certain digits due to the lack of randomness in the reconstruction phase.
+
+
+Full report available in `report/`.
+
+### Sample Progression
+
+Below is an example of the sample progression during the diffusion process:
+<p align="center">
+    <img src="figures/sample_progression_4x4_distr_every_3_NEAR.png" alt="Sample Progression" width="400"/>
+</p>
 
 
 We include scripts for Bilinear Cold Zoom Diffusion, but these results are not discussed in the report. These are here for completeness.
@@ -16,7 +26,7 @@ Dependencies required to run the project are listed in the `environment.yml` fil
 conda env create -f environment.yml
 ```
 
-Once the environment is created, activate it using:
+Once the environment is created, activate it using: 
 
 ```bash
 conda activate m2
