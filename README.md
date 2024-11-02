@@ -12,7 +12,7 @@ Full report available in `report/`.
 
 Below is an example of the sample progression during the diffusion process:
 <p align="center">
-    <img src="figures/sample_progression_4x4_distr_every_3_NEAR.png" alt="Sample Progression" width="400"/>
+    <img src="sample_progression_4x4_distr_every_3_NEAR.png" alt="Sample Progression" width="400"/>
 </p>
 
 
