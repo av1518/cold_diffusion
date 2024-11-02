@@ -6,6 +6,8 @@
 
 *.png
 
+!sample_progression_4x4_distr_every_3_NEAR.png
+
 /saved_models/*
 /src/wandb
 /wandb
